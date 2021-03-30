@@ -2,6 +2,7 @@
 #include <readline/readline.h>
 #include <limits.h>
 #include <locale.h>
+#include <malloc.h>
 #include <pwd.h>
 #include <stdlib.h>
 
@@ -12,6 +13,8 @@
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
 unsigned int command_count = 0;
+char *cwd = NULL;
+char *hostname = NULL;
 
 static int readline_init(void);
 
@@ -74,14 +77,15 @@ char *prompt_username(void)
 
 char *prompt_hostname(void)
 {   
-    char hostname[HOST_NAME_MAX + 1];
+    hostname = malloc(HOST_NAME_MAX + 1);
     gethostname(hostname, HOST_NAME_MAX + 1);
+    printf(hostname);
     return strlen(hostname) == 0 ? "unknown_host" : hostname;
 }
 
 char *prompt_cwd(void)
 {
-    char *cwd = malloc(PATH_MAX);
+    cwd = malloc(PATH_MAX);
     getcwd(cwd, PATH_MAX);
 
     struct passwd *pw = getpwuid(getuid());
@@ -93,11 +97,11 @@ char *prompt_cwd(void)
     size_t cwdlen = strlen(cwd);
 
     if (homelen <= cwdlen && memcmp(homedir, cwd, homelen) == 0) {
-        cwd += homelen - 1;
         const char *homeShort = "~";
         strncpy(cwd, homeShort, strlen(homeShort));
     }
-    return strlen(cwd) == 0 ? "/unknown/path" : cwd;
+
+    return strlen(cwd) == 0 ? "/unknown/path": cwd;
 }
 
 int prompt_status(void)
