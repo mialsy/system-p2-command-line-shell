@@ -32,6 +32,8 @@ void init_ui(void)
 void destroy_ui(void)
 {
     // TODO cleanup code, if necessary
+    free(cwd);
+    free(hostname);
 }
 
 // do not need to change
@@ -79,7 +81,6 @@ char *prompt_hostname(void)
 {   
     hostname = malloc(HOST_NAME_MAX + 1);
     gethostname(hostname, HOST_NAME_MAX + 1);
-    printf(hostname);
     return strlen(hostname) == 0 ? "unknown_host" : hostname;
 }
 
@@ -91,8 +92,6 @@ char *prompt_cwd(void)
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
     
-    printf("homedir: %s", homedir);
-
     size_t homelen = strlen(homedir);
     size_t cwdlen = strlen(cwd);
 
