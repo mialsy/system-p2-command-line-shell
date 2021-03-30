@@ -25,6 +25,12 @@ int main(void)
         }
 
         LOG("Input command: %s\n", command);
+        // TODO: tolkenized command
+        // TODO: add each token to a list
+        // TODO: check for built-in functions
+        // TODO: preprocess command (before redirection "<>>", background "&")
+        // TODO: fork a child process
+        // TODO: excute whatever command the user asked for
 
         /* We are done with command; free it */
         free(command);

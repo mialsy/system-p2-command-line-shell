@@ -2,6 +2,8 @@
 
 #include "history.h"
 
+// circlar list or linked list
+
 void hist_init(unsigned int limit)
 {
     // TODO: set up history data structures, with 'limit' being the maximum

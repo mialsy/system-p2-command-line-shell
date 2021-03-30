@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <readline/readline.h>
+#include <limits.h>
 #include <locale.h>
+#include <pwd.h>
 #include <stdlib.h>
 
 #include "history.h"
@@ -9,6 +11,7 @@
 
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
+unsigned int command_count = 0;
 
 static int readline_init(void);
 
@@ -28,6 +31,7 @@ void destroy_ui(void)
     // TODO cleanup code, if necessary
 }
 
+// do not need to change
 char *prompt_line(void)
 {
     const char *status = prompt_status() ? bad_str : good_str;
@@ -64,17 +68,28 @@ char *prompt_line(void)
 
 char *prompt_username(void)
 {
-    return "unknown_user";
+    char *username = getlogin();
+    return username == NULL ? "unknown_user" : username;
 }
 
 char *prompt_hostname(void)
-{
-    return "unknown_host";
+{   
+    char hostname[HOST_NAME_MAX + 1];
+    gethostname(hostname, HOST_NAME_MAX + 1);
+    return strlen(hostname) == 0 ? "unknown_host" : hostname;
 }
 
 char *prompt_cwd(void)
 {
-    return "/unknown/path";
+    char cwd[PATH_MAX];
+    getcwd(cwd, PATH_MAX);
+
+    struct passwd *pw = getpwuid(getuid());
+    const char *homedir = pw->pw_dir;
+    
+    printf("homedir: %s", homedir);
+    
+    return strlen(cwd) == 0 ? "/unknown/path" : cwd;
 }
 
 int prompt_status(void)
@@ -84,7 +99,7 @@ int prompt_status(void)
 
 unsigned int prompt_cmd_num(void)
 {
-    return 0;
+    return ++command_count;
 }
 
 char *read_command(void)
