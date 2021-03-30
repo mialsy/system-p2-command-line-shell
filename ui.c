@@ -81,14 +81,22 @@ char *prompt_hostname(void)
 
 char *prompt_cwd(void)
 {
-    char cwd[PATH_MAX];
+    char *cwd = malloc(PATH_MAX);
     getcwd(cwd, PATH_MAX);
 
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
     
     printf("homedir: %s", homedir);
-    
+
+    size_t homelen = strlen(homedir);
+    size_t cwdlen = strlen(cwd);
+
+    if (homelen <= cwdlen && memcmp(homedir, cwd, homelen) == 0) {
+        cwd += homelen - 1;
+        const char *homeShort = "~";
+        strncpy(cwd, homeShort, strlen(homeShort));
+    }
     return strlen(cwd) == 0 ? "/unknown/path" : cwd;
 }
 
