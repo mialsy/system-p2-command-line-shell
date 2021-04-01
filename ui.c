@@ -13,6 +13,7 @@
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
 unsigned int command_count = 0;
+unsigned int history_index = 0;
 char *cwd = NULL;
 char *hostname = NULL;
 
@@ -127,6 +128,7 @@ int readline_init(void)
     rl_bind_keyseq("\\e[B", key_down);
     rl_variable_bind("show-all-if-ambiguous", "on");
     rl_variable_bind("colored-completion-prefix", "on");
+    history_index = 0;
     return 0;
 }
 
@@ -141,6 +143,8 @@ int key_up(int count, int key)
     // TODO: step back through the history until no more history entries are
     // left. Once the end of the history is reached, stop updating the command
     // line.
+    history_index += count;
+    printf("history: %d\n", history_index);
 
     return 0;
 }
@@ -156,6 +160,9 @@ int key_down(int count, int key)
     // TODO: step forward through the history (assuming we have stepped back
     // previously). Going past the most recent history command blanks out the
     // command line to allow the user to type a new command.
+
+    history_index -= count;
+    printf("history: %d\n", history_index);
 
     return 0;
 }
