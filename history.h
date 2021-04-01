@@ -14,5 +14,7 @@ void hist_print(void);
 const char *hist_search_prefix(char *);
 const char *hist_search_cnum(int);
 unsigned int hist_last_cnum(void);
+void test_hist();
+int hist_idx_isValid(int);
 
 #endif

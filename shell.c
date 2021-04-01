@@ -16,6 +16,7 @@
 int main(void)
 {
     init_ui();
+    hist_init(10);
 
     char *command;
     while (true) {
@@ -25,7 +26,10 @@ int main(void)
         }
 
         LOG("Input command: %s\n", command);
+        hist_add(command);
+
         // TODO: tolkenized command
+
         // TODO: add each token to a list
         // TODO: check for built-in functions
         // TODO: preprocess command (before redirection "<>>", background "&")

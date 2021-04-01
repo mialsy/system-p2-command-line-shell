@@ -24,7 +24,7 @@ struct iterator {
 
 void hist_init(unsigned int limit)
 {
-    // : set up history data structures, with 'limit' being the maximum
+    // set up history data structures, with 'limit' being the maximum
     // number of entries maintained.
     list =  malloc(sizeof(struct hist_clist));
     if (list == NULL) {
@@ -69,17 +69,26 @@ struct iterator create_iter(void)
 }
 
 
-const char *get_idx(int command_number)
+const char *get_idx(int idx)
 {
     // Retrieves a particular command number. Return NULL if no match found.
-    if (list == NULL || command_number >= list->insertions || ((list->insertions > list->capacity) && (command_number < list->insertions - list->capacity)))
+    if (hist_idx_isValid(idx) != 0)
     {
         return NULL;
     } 
 
-    size_t idx = command_number % list->capacity;
+    size_t real_idx = idx % list->capacity;
 
-    return list->cmd_storage + idx * MAX_CMD_LEN;
+    return list->cmd_storage + real_idx * MAX_CMD_LEN;
+}
+
+int hist_idx_isValid(int idx) 
+{
+    if (list == NULL || idx >= list->insertions || ((list->insertions > list->capacity) && (idx < list->insertions - list->capacity))) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 const char *iterate(struct iterator *iter) {
@@ -104,12 +113,16 @@ void hist_print(void)
     const char *elem;
     struct iterator iter = create_iter();
     while ((elem = iterate_rev(&iter)) != NULL) {
-        printf("%*zu %s\n", 3, iter.idx, elem);
+        if (list->insertions < list->capacity) {
+            printf("%*zu %s\n", 3, iter.idx, elem);
+        } else {
+            printf("%*zu %s\n", 3, iter.idx - list->capacity + list->insertions, elem);
+        }
     }
 }
 
 const char *hist_search_cnum(int command_num) {
-    return get_idx(command_num + list->insertions - list->capacity - 1);
+    return get_idx(command_num - 1);
 }
 
 const char *hist_search_prefix(char *prefix)
@@ -130,24 +143,27 @@ const char *hist_search_prefix(char *prefix)
 
 unsigned int hist_last_cnum(void)
 {
-    return list->insertions < list->capacity ? list->insertions : list->capacity;
+    return list->insertions;
 }
 
-// int main(void) {
+void test_hist(void) {
 
-//     // test 
-//     hist_init(5);
-//     hist_add("ls");
-//     hist_add("pwd");
-//     hist_add("ls -alt");
-//     hist_add("cd main");
-//     hist_add("wc -l");
-//     hist_add("history");
-//     hist_add("ls -r");
+    // test 
+    hist_init(5);
+    hist_add("ls");
+    hist_add("pwd");
+    hist_add("ls -alt");
+    hist_add("cd main");
+    hist_add("wc -l");
+    hist_add("history");
+    hist_add("ls -r");
+    hist_add("ls -r");
+    hist_add("cat makefile");
 
-//     hist_print();
-//     printf("last: %zu\n", hist_last_cnum());
-//     char *pre = "pwd";
-//     printf("last ls: %s\n", hist_search_prefix(pre));
-//     printf("cmd 4: %s\n", hist_search_cnum(4));
-// }
+
+    hist_print();
+    printf("last: %x\n", hist_last_cnum());
+    char *pre = "ls";
+    printf("last ls: %s\n", hist_search_prefix(pre));
+    printf("cmd 9: %s\n", hist_search_cnum(9));
+}

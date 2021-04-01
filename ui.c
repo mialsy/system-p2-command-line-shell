@@ -13,7 +13,7 @@
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
 unsigned int command_count = 0;
-unsigned int history_index = 0;
+unsigned int history_offset = 0;
 char *cwd = NULL;
 char *hostname = NULL;
 
@@ -128,23 +128,24 @@ int readline_init(void)
     rl_bind_keyseq("\\e[B", key_down);
     rl_variable_bind("show-all-if-ambiguous", "on");
     rl_variable_bind("colored-completion-prefix", "on");
-    history_index = 0;
+    history_offset = 0;
     return 0;
 }
 
 int key_up(int count, int key)
 {
     /* Modify the command entry text: */
-    rl_replace_line("User pressed 'up' key", 1);
+    rl_replace_line(hist_idx_isValid(hist_last_cnum() + history_offset - 1) == 0 ? hist_search_cnum(hist_last_cnum() + history_offset) : "" , 1);
 
     /* Move the cursor to the end of the line: */
     rl_point = rl_end;
 
-    // TODO: step back through the history until no more history entries are
+    // step back through the history until no more history entries are
     // left. Once the end of the history is reached, stop updating the command
     // line.
-    history_index += count;
-    printf("history: %d\n", history_index);
+    if (hist_idx_isValid(hist_last_cnum() + history_offset - count - 1) == 0) {
+        history_offset -= count;
+    }
 
     return 0;
 }
@@ -152,17 +153,18 @@ int key_up(int count, int key)
 int key_down(int count, int key)
 {
     /* Modify the command entry text: */
-    rl_replace_line("User pressed 'down' key", 1);
+    rl_replace_line(hist_idx_isValid(hist_last_cnum() + history_offset - 1) == 0 ? hist_search_cnum(hist_last_cnum() + history_offset) : "" , 1);
 
     /* Move the cursor to the end of the line: */
     rl_point = rl_end;
 
-    // TODO: step forward through the history (assuming we have stepped back
+    // step forward through the history (assuming we have stepped back
     // previously). Going past the most recent history command blanks out the
     // command line to allow the user to type a new command.
 
-    history_index -= count;
-    printf("history: %d\n", history_index);
+    if (hist_idx_isValid(hist_last_cnum() + history_offset + count - 1) == 0) {
+        history_offset += count;
+    }
 
     return 0;
 }
