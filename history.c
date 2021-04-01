@@ -67,6 +67,12 @@ struct iterator create_iter(void)
     return it;
 }
 
+const char *iterate(struct iterator *iter) {
+    const char *ptr = hist_search_cnum(list->insertions - iter->idx - 1);
+    iter->idx++;
+    return ptr;
+}
+
 const char *iterate_rev(struct iterator *iter) {
     if (list->insertions < list->capacity) {
         return hist_search_cnum(iter->idx++);
@@ -83,14 +89,24 @@ void hist_print(void)
     const char *elem;
     struct iterator iter = create_iter();
     while ((elem = iterate_rev(&iter)) != NULL) {
-        printf("%zu %s", iter.idx, elem);
+        printf("%*zu %s", 3, iter.idx, elem);
     }
 }
 
 const char *hist_search_prefix(char *prefix)
 {
-    // TODO: Retrieves the most recent command starting with 'prefix', or NULL
+    // Retrieves the most recent command starting with 'prefix', or NULL
     // if no match found.
+
+    struct iterator iter = create_iter();
+    const char *elem;
+    while ((elem = iterate(&iter)) != NULL)
+    {
+        if (strncmp(prefix, elem, strlen(prefix)) == 0) {
+            return elem;
+        }
+    }
+    
     return NULL;
 }
 
