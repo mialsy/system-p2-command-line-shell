@@ -9,7 +9,7 @@ CFLAGS += -g -Wall -fPIC -DLOGGER=$(LOGGER)
 LDLIBS += -lm -lreadline
 LDFLAGS +=
 
-src=history.c shell.c ui.c
+src=history.c shell.c ui.c elist.c
 obj=$(src:.c=.o)
 
 all: $(bin) libshell.so
@@ -20,7 +20,7 @@ $(bin): $(obj)
 libshell.so: $(obj)
 	$(CC) $(CFLAGS) $(LDLIBS) $(LDFLAGS) $(obj) -shared -o $@
 
-shell.o: shell.c history.h logger.h ui.h
+shell.o: shell.c history.h logger.h ui.h elist.h
 history.o: history.c history.h logger.h
 ui.o: ui.h ui.c logger.h history.h
 

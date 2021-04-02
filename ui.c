@@ -14,9 +14,6 @@ static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
 unsigned int command_count = 0;
 unsigned int history_offset = 0;
-char *cwd = NULL;
-char *hostname = NULL;
-
 static int readline_init(void);
 
 void init_ui(void)
@@ -33,14 +30,12 @@ void init_ui(void)
 void destroy_ui(void)
 {
     // TODO cleanup code, if necessary
-    free(cwd);
-    free(hostname);
 }
 
 // do not need to change
 char *prompt_line(void)
 {
-    const char *status = prompt_status() ? bad_str : good_str;
+    const char *status = prompt_status() ? good_str : bad_str;
 
     char cmd_num[25];
     snprintf(cmd_num, 25, "%d", prompt_cmd_num());
@@ -80,14 +75,16 @@ char *prompt_username(void)
 
 char *prompt_hostname(void)
 {   
-    hostname = malloc(HOST_NAME_MAX + 1);
-    gethostname(hostname, HOST_NAME_MAX + 1);
-    return strlen(hostname) == 0 ? "unknown_host" : hostname;
+    char *hostname = malloc(sizeof(char) * (HOST_NAME_MAX + 1));
+    if (gethostname(hostname, HOST_NAME_MAX + 1) != 0) {
+        strcpy(hostname, "unkown_host");
+    }
+    return hostname;
 }
 
 char *prompt_cwd(void)
 {
-    cwd = malloc(PATH_MAX);
+    char *cwd = malloc(sizeof(char) * PATH_MAX);
     getcwd(cwd, PATH_MAX);
 
     struct passwd *pw = getpwuid(getuid());
@@ -98,10 +95,11 @@ char *prompt_cwd(void)
 
     if (homelen <= cwdlen && memcmp(homedir, cwd, homelen) == 0) {
         const char *homeShort = "~";
+        cwd += homelen;
         strncpy(cwd, homeShort, strlen(homeShort));
     }
-
-    return strlen(cwd) == 0 ? "/unknown/path": cwd;
+    
+    return cwd;
 }
 
 int prompt_status(void)
