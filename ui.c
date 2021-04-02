@@ -12,9 +12,14 @@
 
 static const char *good_str = "😌";
 static const char *bad_str  = "🤯";
-unsigned int command_count = 0;
-unsigned int history_offset = 0;
+static unsigned int command_count = 0;
+static int history_offset = 0;
+static int status_code = 0;
 static int readline_init(void);
+
+void set_status(int num) {
+    status_code = num;
+}
 
 void init_ui(void)
 {
@@ -35,7 +40,7 @@ void destroy_ui(void)
 // do not need to change
 char *prompt_line(void)
 {
-    const char *status = prompt_status() ? good_str : bad_str;
+    const char *status = prompt_status() ? bad_str : good_str;
 
     char cmd_num[25];
     snprintf(cmd_num, 25, "%d", prompt_cmd_num());
@@ -57,13 +62,29 @@ char *prompt_line(void)
 
     char *prompt_str =  malloc(sizeof(char) * prompt_sz);
 
+    struct passwd *pw = getpwuid(getuid());
+    const char *homedir = pw->pw_dir;
+    
+    size_t homelen = strlen(homedir);
+
+    char *cwd_short = cwd;
+
+    if (memcmp(homedir, cwd_short, homelen) == 0) {
+        cwd_short = cwd + homelen - 1;
+        *cwd_short = '~';
+    } else {
+        cwd_short = cwd;
+    }
+
     snprintf(prompt_str, prompt_sz, format_str,
             status,
             cmd_num,
             user,
             host,
-            cwd);
+            cwd_short);
 
+    free(cwd);
+    free(host);
     return prompt_str;
 }
 
@@ -86,25 +107,13 @@ char *prompt_cwd(void)
 {
     char *cwd = malloc(sizeof(char) * PATH_MAX);
     getcwd(cwd, PATH_MAX);
-
-    struct passwd *pw = getpwuid(getuid());
-    const char *homedir = pw->pw_dir;
-    
-    size_t homelen = strlen(homedir);
-    size_t cwdlen = strlen(cwd);
-
-    if (homelen <= cwdlen && memcmp(homedir, cwd, homelen) == 0) {
-        const char *homeShort = "~";
-        cwd += homelen;
-        strncpy(cwd, homeShort, strlen(homeShort));
-    }
     
     return cwd;
 }
 
 int prompt_status(void)
 {
-    return -1;
+    return status_code;
 }
 
 unsigned int prompt_cmd_num(void)

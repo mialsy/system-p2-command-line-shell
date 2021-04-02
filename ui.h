@@ -8,6 +8,7 @@
 #ifndef _UI_H_
 #define _UI_H_
 
+void set_status(int);
 void init_ui(void);
 void destroy_ui(void);
 

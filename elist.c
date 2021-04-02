@@ -109,6 +109,10 @@ size_t elist_capacity(struct elist *list)
 ssize_t elist_add(struct elist *list, void *item)
 {   
     // handle capacity  == 0
+    if (item == NULL) {
+        return -1;
+    }
+
     if (list->capacity == 0) {
         list->capacity = DEFAULT_INIT_SZ;
         size_t storage_bytes = list->capacity * list->item_sz;
