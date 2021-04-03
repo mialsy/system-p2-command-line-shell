@@ -143,7 +143,7 @@ int main(void)
             // history
             set_status(handle_history(tokens));            
         } else if (strncmp("!", first_cmd, 1) == 0) {
-            // hist go to
+            // hist excute, need to set up go to and command
             if (elist_size(tokens) != 1) {
                 perror("too many argument");
                 set_status(1);
@@ -179,21 +179,24 @@ int main(void)
 
 
             // TODO: fork a child process
-            // pid_t child = fork();
+            pid_t child = fork();
 
-            // if (child == -1) {
-            //     perror("fork");
-            // } else if (child == 0) {
-            //     LOGP("child process");
-            // } else {
-
-            // }
+            if (child == -1) {
+                perror("fork");
+            } else if (child == 0) {
+                LOGP("child process\n");
+                elist_destroy(tokens);
+                free(command);
+                break;
+            } else {
+                int status;
+                wait(&status);
+                LOGP("parent process\n");
+            }
 
             // TODO: excute whatever command the user asked for
 
         }
-
-        
 
         /* We are done with command; free it */
         elist_destroy(tokens);
