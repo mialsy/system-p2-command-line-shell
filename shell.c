@@ -100,7 +100,10 @@ int main(void)
         }
 
         LOG("Input command: %s\n", command);
-        hist_add(command);
+        if (strncmp(command, "!", 1) != 0) {
+            hist_add(command);
+        }
+
 
         struct elist *tokens = elist_create(10, sizeof(char **));
 
@@ -141,14 +144,18 @@ int main(void)
             set_status(handle_history(tokens));            
         } else if (strncmp("!", first_cmd, 1) == 0) {
             // hist go to
-            if (elist_size(tokens) == 1 && strcmp(first_cmd, "!!") == 0) {
-                strcpy(command, hist_search_cnum(hist_last_cnum() - 1));
-                set_status(0);
-                elist_destroy(tokens);
-                goto label;
-            } else if (elist_size(tokens) == 2 && strcmp(first_cmd, "!") == 0) {
-                int hist_num = atoi(*(char **)elist_get(tokens, 1));
-                LOG("hist num: %d\n", hist_num);
+            if (elist_size(tokens) != 1) {
+                perror("too many argument");
+                set_status(1);
+            } else {
+                int hist_num;
+                if (strcmp(first_cmd, "!!") == 0) {
+                    hist_num = hist_last_cnum();
+                } else {
+                    hist_num = atoi((const char*)(first_cmd + 1));
+                }
+                // as hist num range start from 1
+                // error in atoi would be handled in search num
                 const char *hist_item = hist_search_cnum(hist_num);
                 if (hist_item == NULL) {
                     perror("history item not found");
@@ -159,9 +166,6 @@ int main(void)
                     elist_destroy(tokens);
                     goto label;
                 }
-            } else {
-                perror("too many argument");
-                set_status(1);
             }
         } else if (strcmp("exit", first_cmd) == 0) {
             // exit
@@ -175,10 +179,18 @@ int main(void)
 
 
             // TODO: fork a child process
-            
+            // pid_t child = fork();
+
+            // if (child == -1) {
+            //     perror("fork");
+            // } else if (child == 0) {
+            //     LOGP("child process");
+            // } else {
+
+            // }
 
             // TODO: excute whatever command the user asked for
-            
+
         }
 
         
