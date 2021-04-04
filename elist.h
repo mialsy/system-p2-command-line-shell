@@ -10,6 +10,14 @@
 struct elist;
 
 /**
+ * Get the pointer of the elist
+ * @param list The list of operation
+ * 
+ * @return the pointer to the input list
+ */
+void *elist_get_list(struct elist *list);
+
+/**
  * Adds a new element to the list by copying its in-memory contents into the
  * list's element storage.
  *

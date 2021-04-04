@@ -18,6 +18,10 @@ struct elist {
 
 bool idx_is_valid(struct elist *list, size_t idx);
 
+void *elist_get_list(struct elist *list) {
+    return list->element_storage;
+}
+
 /**
  * Helper function that initialze the element_storage to given bytes
  *
