@@ -230,11 +230,10 @@ int main(void)
                 LOGP("child process\n");
                 char **arguments = (char **)elist_get_list(tokens);
 
-                if (elist_size(tokens) > 1) {
-                    // add null terminator if size is larger than 1
-                    elist_add_new(tokens);
-                    arguments[elist_size(tokens) - 1] = NULL;
-                }
+                // add null terminator if size is larger than 1
+                elist_add_new(tokens);
+                arguments[elist_size(tokens) - 1] = NULL;
+                
                 // LOG("elist_size() - 1: %zu\n", elist_size(tokens) - 1); 
                 
 
@@ -253,17 +252,13 @@ int main(void)
                 elist_destroy(tokens);
                 free(command);
                 break;
-            }
-            else
-            {
+            } else {
                 int status;
                 wait(&status);
                 LOG("child status %d\n", status);
                 set_status(status);
                 LOGP("parent process\n");
             }
-
-            // TODO: excute whatever command the user asked for
         }
 
         /* We are done with command; free it */
