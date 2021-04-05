@@ -148,6 +148,7 @@ int main(void)
         }
 
         LOG("Input command: %s\n", command);
+        
         if (strncmp(command, "!", 1) != 0)
         {
             hist_add(command);
@@ -160,6 +161,9 @@ int main(void)
         char *cur_tok;
         while ((cur_tok = next_token(&next_tok, " \n\t")) != NULL)
         {
+            if (strncmp(cur_tok, "#", 1) == 0) {
+                break;
+            }
             if (elist_add(tokens, &cur_tok) == -1)
             {
                 perror("cannot add token");
