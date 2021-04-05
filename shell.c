@@ -117,6 +117,60 @@ char *next_token(char **str_ptr, const char *delim)
     return current_ptr;
 }
 
+int handle_redirect_helper(char *fname, int open_flages, int open_perms, size_t redir_Out) {
+    int fd = open(fname, open_flages, open_perms);
+    if (fd == -1) {
+        perror("open");
+        return 1;
+    }
+
+    if (dup2(fd, fileno(redir_Out == 0 ? stdout : stdin)) == -1) {
+        perror("dup2");
+        close(fd);
+        return 1;
+    }
+   
+    close(fd);
+    return 0;
+}
+
+int handle_redirect(struct elist *tokens) {
+    size_t idx = 0;
+    int open_perms = 0666;
+    int create_flags = O_RDWR | O_CREAT | O_TRUNC;
+    int append_flags = O_RDWR | O_CREAT | O_APPEND;
+
+    char *current_cmd;
+    int newSize = elist_size(tokens);
+    int redirectRes = 0;
+    while (idx < elist_size(tokens))
+    {   
+        current_cmd = *(char **) elist_get(tokens, idx++);
+        if (strcmp(current_cmd, ">") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, create_flags, open_perms, 0);
+        } else if (strcmp(current_cmd, ">>") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, append_flags, open_perms, 0);
+        } else if (strcmp(current_cmd, "<") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, O_RDONLY, open_perms, 1);
+        }
+        LOG("idx %zu\n", idx);
+    }
+    LOGP("traverse done\n");
+
+    if (newSize != elist_size(tokens)) {
+        elist_set_capacity(tokens, newSize);
+            elist_remove(tokens, newSize - 1);
+    }
+    
+    return redirectRes;
+}
+
 int main(void)
 {   
 
@@ -250,8 +304,8 @@ int main(void)
         }
         else
         {
-            // TODO: preprocess command (before redirection "<>>", background "&")
-
+            
+            // process background "&"
             size_t isBackground = 0;
             if (strncmp("&", first_cmd, 1) == 0) {
                 isBackground = 1;
@@ -269,6 +323,13 @@ int main(void)
             else if (child == 0)
             {
                 // handle excution
+                // TODO: preprocess command (before redirection "<>>", 
+                // process redirect
+                if (handle_redirect(tokens) != 0) {
+                    elist_destroy(tokens);
+                    _exit(1);
+                }
+            
                 signal(SIGINT, handle_signint);
                 childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
