@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <sys/prctl.h>
 #include <errno.h>
 #include <pwd.h>
 #include <readline/readline.h>
@@ -17,6 +18,8 @@
 #include "logger.h"
 #include "ui.h"
 #include "elist.h"
+
+static struct elist * jobs_list;
 
 int handle_cd(struct elist *tokens)
 {
@@ -80,7 +83,13 @@ int handle_child_excution(struct elist *tokens) {
 } 
 
 void handle_jobs(void)
-{
+{   
+    LOG("jobs of len: %zu\n", elist_size(jobs_list));
+    size_t idx = 0;
+    while (idx < elist_size(jobs_list)) {
+        printf("[%zu] %d\n", idx, *(pid_t *) elist_get(jobs_list, idx));
+        idx++;
+    }
 }
 
 void handle_signint(int num) {
@@ -140,12 +149,11 @@ int handle_redirect(struct elist *tokens) {
     int create_flags = O_RDWR | O_CREAT | O_TRUNC;
     int append_flags = O_RDWR | O_CREAT | O_APPEND;
 
-    char *current_cmd;
     int newSize = elist_size(tokens);
     int redirectRes = 0;
     while (idx < elist_size(tokens))
     {   
-        current_cmd = *(char **) elist_get(tokens, idx++);
+        char *current_cmd = *(char **) elist_get(tokens, idx++);
         if (strcmp(current_cmd, ">") == 0) {
             newSize = newSize == elist_size(tokens) ? idx : newSize;
             char * fname = *(char **) elist_get(tokens, idx++);
@@ -171,6 +179,18 @@ int handle_redirect(struct elist *tokens) {
     return redirectRes;
 }
 
+void sigchild_handler(int signo) {
+    pid_t pid;
+    int status;
+    set_status(0);
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        int idx = elist_index_of(jobs_list, &pid);
+        elist_remove(jobs_list, idx);
+        LOG("\npid: %d\n", pid);
+    }
+    LOGP("back ground done\n");
+}
+
 int main(void)
 {   
 
@@ -182,11 +202,14 @@ int main(void)
     }
 
     hist_init(10);
+    jobs_list = elist_create(10, sizeof(pid_t));
+
     int childProcessRes = 0;
 
     char *command = NULL;
 
     signal(SIGINT, SIG_IGN);
+
     size_t len = 0;
 
     while (isatty(STDIN_FILENO) || getline(&command, &len, stdin) != -1)
@@ -304,7 +327,6 @@ int main(void)
         }
         else
         {
-            
             // process background "&"
             size_t isBackground = 0;
             if (strncmp("&", first_cmd, 1) == 0) {
@@ -323,7 +345,8 @@ int main(void)
             else if (child == 0)
             {
                 // handle excution
-                // TODO: preprocess command (before redirection "<>>", 
+                prctl(PR_SET_PDEATHSIG, SIGTERM);
+
                 // process redirect
                 if (handle_redirect(tokens) != 0) {
                     elist_destroy(tokens);
@@ -335,10 +358,12 @@ int main(void)
                 elist_destroy(tokens);
                 _exit(childProcessRes);
             } else {
-                int status;
+                int status = 0;
                 LOG("first cmd in parent: %s\n", first_cmd);
                 if (isBackground != 0) {
                     set_status(0);
+                    elist_add(jobs_list, &child);
+                    signal(SIGCHLD, sigchild_handler);
                     LOG("back: %zu\n", isBackground);
                     set_status(status);
                 } else {
@@ -356,7 +381,6 @@ int main(void)
     LOGP("fre4\n");
     free(command);
     hist_destroy();
-    destroy_ui();
 
     return childProcessRes;
 }

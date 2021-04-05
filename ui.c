@@ -43,7 +43,7 @@ char *prompt_line(void)
     const char *status = prompt_status() ? bad_str : good_str;
 
     char cmd_num[25];
-    snprintf(cmd_num, 25, "%d", prompt_cmd_num());
+    snprintf(cmd_num, 25, "%u", prompt_cmd_num());
 
     char *user = prompt_username();
     char *host = prompt_hostname();

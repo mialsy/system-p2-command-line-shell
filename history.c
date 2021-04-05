@@ -14,7 +14,7 @@ struct hist_clist *list = NULL;
 struct hist_clist {
     size_t insertions;
     size_t capacity;
-    void *cmd_storage;
+    char **cmd_storage;
 };
 
 struct iterator {
@@ -78,7 +78,7 @@ const char *get_idx(int idx)
 
     size_t real_idx = idx % list->capacity;
 
-    return list->cmd_storage + real_idx * MAX_CMD_LEN;
+    return (const char *) (list->cmd_storage + real_idx * MAX_CMD_LEN);
 }
 
 int hist_idx_isValid(int idx) 
