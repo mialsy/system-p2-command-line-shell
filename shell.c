@@ -1,6 +1,8 @@
 #include <fcntl.h>
+#include <errno.h>
 #include <pwd.h>
 #include <readline/readline.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,8 +65,27 @@ int handle_history(struct elist *tokens)
     }
 }
 
+int handle_child_excution(struct elist *tokens) {
+    char **arguments = (char **)elist_get_list(tokens);
+    LOG("child process, excueting: %s\n", *arguments);
+
+    // add null terminator if size is larger than 1
+    if (elist_add_new(tokens) == NULL) {
+        perror("error elist_add_new");
+        return -1;
+    }
+    
+    arguments[elist_size(tokens) - 1] = NULL;
+    return execvp(*(char **)elist_get(tokens, 0), arguments);
+} 
+
 void handle_jobs(void)
 {
+}
+
+void handle_signint(int num) {
+    perror("child interupted");
+    exit(EINTR);
 }
 
 char *next_token(char **str_ptr, const char *delim)
@@ -74,12 +95,10 @@ char *next_token(char **str_ptr, const char *delim)
         LOGP("return null\n");
         return NULL;
     }
-    LOG("str: %s\n", *str_ptr);
 
     size_t tok_start = strspn(*str_ptr, delim);
     size_t tok_end = strcspn(*str_ptr + tok_start, delim);
 
-    LOG("start: %zu, end %zu\n", tok_start, tok_end);
     if (tok_end == 0)
     {
         return NULL;
@@ -95,8 +114,6 @@ char *next_token(char **str_ptr, const char *delim)
         (*str_ptr)++;
     }
 
-    LOG("current tok: %s\n", current_ptr);
-
     return current_ptr;
 }
 
@@ -107,6 +124,8 @@ int main(void)
     int childProcessRes = 0;
 
     char *command;
+
+    signal(SIGINT, SIG_IGN);
 
     while (true)
     {
@@ -218,7 +237,14 @@ int main(void)
         {
             // TODO: preprocess command (before redirection "<>>", background "&")
 
-            // TODO: fork a child process
+            size_t isBackground = 0;
+            if (strncmp("&", first_cmd, 1) == 0) {
+                isBackground = 1;
+                first_cmd++;
+                elist_set(tokens, 0, &first_cmd);
+            }
+
+            // fork a child process
             pid_t child = fork();
 
             if (child == -1)
@@ -227,36 +253,24 @@ int main(void)
             }
             else if (child == 0)
             {
-                LOGP("child process\n");
-                char **arguments = (char **)elist_get_list(tokens);
-
-                // add null terminator if size is larger than 1
-                elist_add_new(tokens);
-                arguments[elist_size(tokens) - 1] = NULL;
-                
-                // LOG("elist_size() - 1: %zu\n", elist_size(tokens) - 1); 
-                
-
-                // debug
-                // int idx = 0;
-                // LOG("size: %zu\n", elist_size(tokens));
-                // LOG("%s\n", *arguments);
-
-                // while (idx < elist_size(tokens))
-                // {
-                //     LOG("%s\n", *(char **)elist_get(tokens, idx++));
-                // }
-                // LOGP("end\n");
-
-                childProcessRes = execvp(*(char **)elist_get(tokens, 0), arguments);
+                // handle excution
+                signal(SIGINT, handle_signint);
+                childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
                 free(command);
                 break;
             } else {
                 int status;
-                wait(&status);
+                LOG("first cmd in parent: %s\n", first_cmd);
+                if (isBackground != 0) {
+                    set_status(0);
+                    LOG("back: %zu\n", isBackground);
+                    set_status(status);
+                } else {
+                    wait(&status);
+                    set_status(status);
+                }
                 LOG("child status %d\n", status);
-                set_status(status);
                 LOGP("parent process\n");
             }
         }
