@@ -118,18 +118,38 @@ char *next_token(char **str_ptr, const char *delim)
 }
 
 int main(void)
-{
+{   
+
+    if (isatty(STDIN_FILENO)) {
+        printf("stdin is a TTY; entering interactive mode\n");
+    } else {
+        printf("data piped in on stdin; entering script mode\n");
+    }
+
     init_ui();
     hist_init(10);
     int childProcessRes = 0;
 
-    char *command;
+    char *command = NULL;
+    size_t len = 0;
+    ssize_t lineSize = 0;
 
     signal(SIGINT, SIG_IGN);
 
     while (true)
     {
-        command = read_command();
+        if (isatty(STDIN_FILENO)) {
+            command = read_command();
+        } else {
+            lineSize = getline(&command, &len, stdin);
+            LOG("linesize: %zd\n", lineSize);
+            
+            if (lineSize == -1) {
+                break;
+            }
+            LOG("line: %s\n", command);
+        }
+        
     label:
         if (command == NULL)
         {
@@ -258,7 +278,9 @@ int main(void)
                 childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
                 free(command);
-                break;
+                hist_destroy();
+                destroy_ui();
+                return childProcessRes;
             } else {
                 int status;
                 LOG("first cmd in parent: %s\n", first_cmd);
@@ -271,7 +293,6 @@ int main(void)
                     set_status(status);
                 }
                 LOG("child status %d\n", status);
-                LOGP("parent process\n");
             }
         }
 
