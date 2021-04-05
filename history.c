@@ -28,7 +28,6 @@ void hist_init(unsigned int limit)
     // number of entries maintained.
     list =  malloc(sizeof(struct hist_clist));
     if (list == NULL) {
-        free(list);
         perror("Could not malloc");
     }
 

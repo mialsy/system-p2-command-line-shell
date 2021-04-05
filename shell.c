@@ -76,6 +76,7 @@ int handle_child_excution(struct elist *tokens) {
     }
     
     arguments[elist_size(tokens) - 1] = NULL;
+    LOGP("child excution end\n");
     return execvp(*(char **)elist_get(tokens, 0), arguments);
 } 
 
@@ -121,34 +122,25 @@ int main(void)
 {   
 
     if (isatty(STDIN_FILENO)) {
-        printf("stdin is a TTY; entering interactive mode\n");
+        init_ui();
+        LOGP("stdin is a TTY; entering interactive mode\n");
     } else {
-        printf("data piped in on stdin; entering script mode\n");
+        LOGP("data piped in on stdin; entering script mode\n");
     }
 
-    init_ui();
     hist_init(10);
     int childProcessRes = 0;
 
     char *command = NULL;
-    size_t len = 0;
-    ssize_t lineSize = 0;
 
     signal(SIGINT, SIG_IGN);
+    size_t len = 0;
 
-    while (true)
+    while (isatty(STDIN_FILENO) || getline(&command, &len, stdin) != -1)
     {
         if (isatty(STDIN_FILENO)) {
             command = read_command();
-        } else {
-            lineSize = getline(&command, &len, stdin);
-            LOG("linesize: %zd\n", lineSize);
-            
-            if (lineSize == -1) {
-                break;
-            }
-            LOG("line: %s\n", command);
-        }
+        } 
         
     label:
         if (command == NULL)
@@ -167,7 +159,7 @@ int main(void)
         // tolkenized command and add command to a list
         char *next_tok = command;
         char *cur_tok;
-        while ((cur_tok = next_token(&next_tok, " ")) != NULL)
+        while ((cur_tok = next_token(&next_tok, " \n\t")) != NULL)
         {
             if (elist_add(tokens, &cur_tok) == -1)
             {
@@ -179,21 +171,21 @@ int main(void)
         if (elist_size(tokens) == 0)
         {
             perror("no argument\n");
-            free(command);
+            LOGP("fre1\n");
             elist_destroy(tokens);
             continue;
         }
 
-        size_t idx = 0;
-        char **current_cmd;
-        while ((current_cmd = (char **)elist_get(tokens, idx++)) != NULL)
-        {
-            LOG("cmd: %s\n", *current_cmd);
-        }
+        // size_t idx = 0;
+        // char **current_cmd;
+        // while ((current_cmd = (char **)elist_get(tokens, idx++)) != NULL)
+        // {
+        //     LOG("cmd: %s\n", *current_cmd);
+        // }
 
         // TODO: check for built-in functions
         char *first_cmd = *(char **)elist_get(tokens, 0);
-        LOG("first: %s\n", first_cmd);
+        // LOG("first: %s\n", first_cmd);
 
         // check built-ins
         if (strcmp("cd", first_cmd) == 0)
@@ -246,7 +238,7 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
-            free(command);
+            LOGP("fre2\n");
             break;
         }
         else if (strcmp("jobs", first_cmd) == 0)
@@ -277,10 +269,7 @@ int main(void)
                 signal(SIGINT, handle_signint);
                 childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
-                free(command);
-                hist_destroy();
-                destroy_ui();
-                return childProcessRes;
+                break;
             } else {
                 int status;
                 LOG("first cmd in parent: %s\n", first_cmd);
@@ -298,8 +287,10 @@ int main(void)
 
         /* We are done with command; free it */
         elist_destroy(tokens);
-        free(command);
+        
     }
+    LOGP("fre4\n");
+    free(command);
     hist_destroy();
     destroy_ui();
 
