@@ -76,7 +76,6 @@ int handle_child_excution(struct elist *tokens) {
     }
     
     arguments[elist_size(tokens) - 1] = NULL;
-    LOGP("child excution end\n");
     return execvp(*(char **)elist_get(tokens, 0), arguments);
 } 
 
@@ -269,7 +268,7 @@ int main(void)
                 signal(SIGINT, handle_signint);
                 childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
-                break;
+                _exit(childProcessRes);
             } else {
                 int status;
                 LOG("first cmd in parent: %s\n", first_cmd);
