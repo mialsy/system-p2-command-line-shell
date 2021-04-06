@@ -2,12 +2,10 @@
 /** @file shell.c
  *  @brief The driver for command line shell - crash.
  *
- *  These empty function definitions are provided
- *  so that stdio will build without complaining.
- *  You will need to fill these functions in. This
- *  is the implementation of the console driver.
- *  Important details about its implementation
- *  should go in these comments.
+ *  This file include the functions to drive the command line shell - crash.
+ * Including implementation of crash build in functions, and implementation of 
+ * handling signal, I/O redirection, background jobs, comment, and executing 
+ * external executable programs.
  *
  */
 
@@ -33,22 +31,101 @@
 #include "ui.h"
 #include "elist.h"
 
-static struct elist * jobs_list;
-int handle_cd(struct elist *tokens);
+static struct elist * jobs_list; /**< elist structure to hold back ground jobs*/
+
+/**
+ * @brief built-in cd function for crash
+ * 
+ * @param tokens tokenzied command
+ * @return int value, zero on success, non-zero on failure
+ */
+int handle_cd(struct elist *tokens); 
+
+/**
+ * @brief built-in history function for crash
+ * 
+ * @param tokens tokenzied command
+ * @return int value, zero on success, non-zero on failure
+ */
 int handle_history(struct elist *tokens);
-int handle_child_excution(struct elist *tokens);
+
+/**
+ * @brief handle executing external executable programs in child process 
+ * 
+ * @param tokens tokenzied command
+ * @return int value, zero on success, non-zero on failure
+ */
+int handle_child_execution(struct elist *tokens);
+
+/**
+ * @brief built-in list jobs function for crash
+ * 
+ */
 void handle_jobs(void);
-void sigint_handler(int num);
+
+/**
+ * @brief handler for SIGINT signal
+ * 
+ * @param signo the signal number
+ */
+void sigint_handler(int signo);
+
+/**
+ * @brief Helper method for tokenziation of the command input
+ * 
+ * @param str_ptr pointer to the command string
+ * @param delim delimators to check
+ * @return char* pointer to the start of next token
+ */
 char *next_token(char **str_ptr, const char *delim);
+
+/**
+ * @brief helper method for redirect io
+ * 
+ * @param fname the redirect direction
+ * @param open_flages open flags
+ * @param open_perms open perms
+ * @param redir_Out zero if is redirecting output, one if redirecting input
+ * @return int value, zero on success, non-zero on failure
+ */
 int handle_redirect_helper(char *fname, int open_flages, int open_perms, size_t redir_Out);
+
+/**
+ * @brief redirect io 
+ * 
+ * @param tokens tokenzied command
+ * @return int value, zero on success, non-zero on failure
+ */
 int handle_redirect(struct elist *tokens);
+
+/**
+ * @brief handler for SIGCHLD signal
+ * 
+ * @param signo the signal number
+ */
 void sigchild_handler(int signo);
+
+/**
+ * @brief Print usage for interactive mode.
+ */
+void print_usage(void) {
+    printf("============== welcome to crash ==============\n");
+    printf("crash is a command line shell that supports: \n ");
+    printf("1. build in functions: \n");
+    printf("\t 1.1 cd - for entering directory\n;");
+    printf("\t 1.2 history - for review command history\n;");
+    printf("\t 1.3 !<command number> or !<command prefix> or !! - for executing history command\n;");
+    printf("\t 1.4 jobs - for listing currently-running background jobs\n;");
+    printf("\t 1.5 exit - for exiting the crash\n;");
+    printf("2. & - background job\n");
+    printf("3. # - comment\n");
+}
 
 int main(void)
 {   
-
     if (isatty(STDIN_FILENO)) {
         init_ui();
+        print_usage();
         LOGP("stdin is a TTY; entering interactive mode\n");
     } else {
         LOGP("data piped in on stdin; entering script mode\n");
@@ -71,14 +148,14 @@ int main(void)
         
         if (isatty(STDIN_FILENO)) {
             command = read_command();
-        } else {
+        } else { 
+            // for taking command from getline, need to remove \n 
             size_t idx = strlen(command) - 1;
-
+            
             if( command[idx] == '\n' ) {
                 command[idx] = '\0';
             }
         }
-        LOG("command: %s", command);
         
     label:
         if (command == NULL)
@@ -131,7 +208,6 @@ int main(void)
         //     LOG("cmd: %s\n", *current_cmd);
         // }
 
-        // TODO: check for built-in functions
         char *first_cmd = *(char **)elist_get(tokens, 0);
         // LOG("first: %s\n", first_cmd);
 
@@ -165,7 +241,7 @@ int main(void)
                 }
                 // as hist num range start from 1
                 // error in atoi would be handled in search num
-                LOG("cnum: %d\n", hist_num);
+                // LOG("cnum: %d\n", hist_num);
                 const char *hist_item = isalpha(*(const char *)(first_cmd + 1)) == 0 ? 
                 hist_search_cnum(hist_num) 
                 : hist_search_prefix(first_cmd + 1);
@@ -229,7 +305,7 @@ int main(void)
                 }
             
                 signal(SIGINT, sigint_handler);
-                childProcessRes = handle_child_excution(tokens);
+                childProcessRes = handle_child_execution(tokens);
                 elist_destroy(tokens);
                 hist_destroy();
                 elist_destroy(jobs_list);
@@ -239,7 +315,7 @@ int main(void)
                 _exit(childProcessRes);
             } else {
                 int status = 0;
-                LOG("first cmd in parent: %s\n", first_cmd);
+                // LOG("first cmd in parent: %s\n", first_cmd);
                 if (isBackground != 0) {
                     set_status(0);
                     elist_add(jobs_list, &child);
@@ -272,7 +348,6 @@ int handle_cd(struct elist *tokens)
     {
         struct passwd *pw = getpwuid(getuid());
         char *homedir = pw->pw_dir;
-        LOG("home dir: %s\n", homedir);
         path = homedir;
     }
     else if (elist_size(tokens) == 2)
@@ -312,9 +387,9 @@ int handle_history(struct elist *tokens)
     }
 }
 
-int handle_child_excution(struct elist *tokens) {
+int handle_child_execution(struct elist *tokens) {
     char **arguments = (char **)elist_get_list(tokens);
-    LOG("child process, excueting: %s\n", *arguments);
+    // LOG("child process, excueting: %s\n", *arguments);
 
     // add null terminator if size is larger than 1
     if (elist_add_new(tokens) == NULL) {
@@ -336,16 +411,15 @@ void handle_jobs(void)
     }
 }
 
-void sigint_handler(int num) {
+void sigint_handler(int signo) {
     perror("child interupted");
-    exit(EINTR);
+    _exit(EINTR);
 }
 
 char *next_token(char **str_ptr, const char *delim)
 {
     if (*str_ptr == NULL || **str_ptr == '\0')
     {
-        LOGP("return null\n");
         return NULL;
     }
 
@@ -411,9 +485,9 @@ int handle_redirect(struct elist *tokens) {
             char * fname = *(char **) elist_get(tokens, idx++);
             redirectRes = handle_redirect_helper(fname, O_RDONLY, open_perms, 1);
         }
-        LOG("idx %zu\n", idx);
+        // LOG("idx %zu\n", idx);
     }
-    LOGP("traverse done\n");
+    // LOGP("traverse done\n");
 
     if (newSize != elist_size(tokens)) {
         elist_set_capacity(tokens, newSize);
@@ -430,7 +504,6 @@ void sigchild_handler(int signo) {
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         int idx = elist_index_of(jobs_list, &pid);
         elist_remove(jobs_list, idx);
-        LOG("\npid: %d\n", pid);
+        // LOG("\npid: %d\n", pid);
     }
-    LOGP("back ground done\n");
 }

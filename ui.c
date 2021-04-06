@@ -1,4 +1,3 @@
-
 /** @file ui.c
  *  @brief The c file for UI functionality for crash program.
  *
@@ -30,8 +29,9 @@ static int history_offset = 0;              /**< offset of history index, calcul
 static int status_code = 0;                 /**< previous process status code*/
 
 /** 
- * Helper method to set up readline
- * @return 0 on succcess
+ * @brief Helper method to set up readline
+ * 
+ * @return int value - zero on succcess
  */
 static int readline_init(void);
 

@@ -65,7 +65,7 @@ void hist_destroy(void)
 
 void hist_add(void *cmd)
 {
-    LOG("hist add: %s",* (char **) cmd);
+    // LOG("hist add: %s",* (char **) cmd);
     if (list == NULL) {
         perror("histroy list does not exits");
     }
@@ -174,7 +174,7 @@ void test_hist(void) {
 
     hist_print();
     printf("last: %x\n", hist_last_cnum());
-    LOGP("I am here\n");
+    // LOGP("I am here\n");
     char *pre = "!ls";
     printf("is alpha: %d\n", isalpha('0'));
     printf("last ls: %s\n", hist_search_prefix(pre + 1));
