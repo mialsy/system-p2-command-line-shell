@@ -13,6 +13,7 @@
  *  @bug No know bugs.
  */
 
+#include <ctype.h>
 #include <fcntl.h>
 #include <sys/prctl.h>
 #include <errno.h>
@@ -216,7 +217,7 @@ int main(void)
         LOGP("data piped in on stdin; entering script mode\n");
     }
 
-    hist_init(10);
+    hist_init(100);
     jobs_list = elist_create(10, sizeof(pid_t));
 
     int childProcessRes = 0;
@@ -224,14 +225,23 @@ int main(void)
     char *command = NULL;
 
     signal(SIGINT, SIG_IGN);
+    signal(SIGCHLD, sigchild_handler);
 
     size_t len = 0;
 
     while (isatty(STDIN_FILENO) || getline(&command, &len, stdin) != -1)
     {
+        
         if (isatty(STDIN_FILENO)) {
             command = read_command();
-        } 
+        } else {
+            size_t idx = strlen(command) - 1;
+
+            if( command[idx] == '\n' ) {
+                command[idx] = '\0';
+            }
+        }
+        LOG("command: %s", command);
         
     label:
         if (command == NULL)
@@ -240,10 +250,16 @@ int main(void)
         }
 
         LOG("Input command: %s\n", command);
+        if (strlen(command) == 0) {
+            continue;
+        }
         
+        char * copy = NULL;
         if (strncmp(command, "!", 1) != 0)
         {
-            hist_add(command);
+            copy = malloc(strlen(command) + 1);
+            strcpy(copy, command);
+            hist_add(&copy);
         }
 
         struct elist *tokens = elist_create(10, sizeof(char **));
@@ -307,14 +323,14 @@ int main(void)
                 if (strcmp(first_cmd, "!!") == 0)
                 {
                     hist_num = hist_last_cnum();
-                }
-                else
-                {
+                } else {
                     hist_num = atoi((const char *)(first_cmd + 1));
                 }
                 // as hist num range start from 1
                 // error in atoi would be handled in search num
-                const char *hist_item = hist_search_cnum(hist_num);
+                const char *hist_item = isalpha((const char *)(first_cmd + 1)) == 0 ? 
+                hist_search_cnum(hist_num) 
+                : hist_search_prefix(first_cmd + 1);
                 if (hist_item == NULL)
                 {
                     perror("history item not found");
@@ -333,6 +349,9 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
+            if (copy != NULL) {
+                free(copy);
+            } 
             LOGP("fre2\n");
             break;
         }
@@ -365,6 +384,9 @@ int main(void)
                 // process redirect
                 if (handle_redirect(tokens) != 0) {
                     elist_destroy(tokens);
+                    if (copy != NULL) {
+                        free(copy);
+                    } 
                     _exit(1);
                 }
             
@@ -373,6 +395,9 @@ int main(void)
                 elist_destroy(tokens);
                 hist_destroy();
                 elist_destroy(jobs_list);
+                if (copy != NULL) {
+                    free(copy);
+                } 
                 _exit(childProcessRes);
             } else {
                 int status = 0;
@@ -380,7 +405,6 @@ int main(void)
                 if (isBackground != 0) {
                     set_status(0);
                     elist_add(jobs_list, &child);
-                    signal(SIGCHLD, sigchild_handler);
                     LOG("back: %zu\n", isBackground);
                     set_status(status);
                 } else {

@@ -14,9 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logger.h"
 #include "history.h"
 
-#define MAX_CMD_LEN 1000
+#define MAX_CMD_LEN 10
 
 // circlar list or linked list
 
@@ -25,7 +26,7 @@ struct hist_clist *list = NULL;
 struct hist_clist {
     size_t insertions;
     size_t capacity;
-    char **cmd_storage;
+    void *cmd_storage;
 };
 
 struct iterator {
@@ -45,7 +46,7 @@ void hist_init(unsigned int limit)
     list->capacity = limit;
     list->insertions = 0;
 
-    list->cmd_storage = malloc (list->capacity * MAX_CMD_LEN);
+    list->cmd_storage = malloc (list->capacity * sizeof(char *));
     if (list->cmd_storage == NULL) {
         perror("malloc error");
 	    free(list);
@@ -61,14 +62,15 @@ void hist_destroy(void)
     }
 }
 
-void hist_add(const char *cmd)
+void hist_add(void *cmd)
 {
+    LOG("hist add: %s",* (char **) cmd);
     if (list == NULL) {
         perror("histroy list does not exits");
     }
     size_t idx = list->insertions % list->capacity;
-    void *ptr = list->cmd_storage + idx * MAX_CMD_LEN;
-    strcpy(ptr, cmd);
+    void *ptr = list->cmd_storage + idx * (sizeof(char *));
+    memcpy(ptr, cmd, sizeof(char *));
     list->insertions++;
 }
 
@@ -79,7 +81,7 @@ struct iterator create_iter(void)
 }
 
 
-const char *get_idx(int idx)
+void *get_idx(int idx)
 {
     // Retrieves a particular command number. Return NULL if no match found.
     if (hist_idx_isValid(idx) != 0)
@@ -89,7 +91,7 @@ const char *get_idx(int idx)
 
     size_t real_idx = idx % list->capacity;
 
-    return (const char *) (list->cmd_storage + real_idx * MAX_CMD_LEN);
+    return list->cmd_storage + real_idx * sizeof(char *);
 }
 
 int hist_idx_isValid(int idx) 
@@ -101,17 +103,17 @@ int hist_idx_isValid(int idx)
     }
 }
 
-const char *iterate(struct iterator *iter) {
-    const char *ptr = get_idx(list->insertions - iter->idx - 1);
+void *iterate(struct iterator *iter) {
+    void *ptr = get_idx(list->insertions - iter->idx - 1);
     iter->idx++;
     return ptr;
 }
 
-const char *iterate_rev(struct iterator *iter) {
+void *iterate_rev(struct iterator *iter) {
     if (list->insertions < list->capacity) {
         return get_idx(iter->idx++);
     } else {
-        const char *ptr = get_idx(iter->idx + list->insertions - list->capacity);
+        void *ptr = get_idx(iter->idx + list->insertions - list->capacity);
         iter->idx++;
         return ptr;
     }
@@ -120,19 +122,21 @@ const char *iterate_rev(struct iterator *iter) {
 void hist_print(void)
 {
     // print history
-    const char *elem;
+    void *elem;
     struct iterator iter = create_iter();
     while ((elem = iterate_rev(&iter)) != NULL) {
         if (list->insertions < list->capacity) {
-            printf("%*zu %s\n", 3, iter.idx, elem);
+            printf("%*zu %s\n", 3, iter.idx, *(char **) elem);
+            fflush(stdout);
         } else {
-            printf("%*zu %s\n", 3, iter.idx - list->capacity + list->insertions, elem);
+            printf("%*zu %s\n", 3, iter.idx - list->capacity + list->insertions, *(char **)elem);
+            fflush(stdout);
         }
     }
 }
 
 const char *hist_search_cnum(int command_num) {
-    return get_idx(command_num - 1);
+    return get_idx(command_num - 1) == NULL ? NULL : (const char *) *(char **) get_idx(command_num - 1);
 }
 
 const char *hist_search_prefix(char *prefix)
@@ -140,11 +144,12 @@ const char *hist_search_prefix(char *prefix)
     // Retrieves the most recent command starting with 'prefix', or NULL
     // if no match found.
     struct iterator iter = create_iter();
-    const char *elem;
+    void *elem;
     while ((elem = iterate(&iter)) != NULL)
     {
-        if (strncmp(prefix, elem, strlen(prefix)) == 0) {
-            return elem;
+        char * currentStr = *(char **)elem;
+        if (strncmp(prefix, currentStr, strlen(prefix)) == 0) {
+            return currentStr;
         }
     }
     
@@ -160,20 +165,17 @@ void test_hist(void) {
 
     // test 
     hist_init(5);
-    hist_add("ls");
-    hist_add("pwd");
-    hist_add("ls -alt");
-    hist_add("cd main");
-    hist_add("wc -l");
-    hist_add("history");
-    hist_add("ls -r");
-    hist_add("ls -r");
-    hist_add("cat makefile");
+    char * str = "ls";
+    char * str2 = "pwd";
+    hist_add(&str);
+    hist_add(&str2);
 
 
     hist_print();
     printf("last: %x\n", hist_last_cnum());
+    LOGP("I am here\n");
     char *pre = "ls";
     printf("last ls: %s\n", hist_search_prefix(pre));
     printf("cmd 9: %s\n", hist_search_cnum(9));
 }
+
