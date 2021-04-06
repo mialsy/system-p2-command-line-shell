@@ -1,6 +1,6 @@
 
-/** @file console.c
- *  @brief A console driver.
+/** @file shell.c
+ *  @brief The driver for command line shell - crash.
  *
  *  These empty function definitions are provided
  *  so that stdio will build without complaining.
@@ -9,8 +9,6 @@
  *  Important details about its implementation
  *  should go in these comments.
  *
- *  @author Harry Q. Bovik (hqbovik)
- *  @bug No know bugs.
  */
 
 #include <ctype.h>
@@ -36,176 +34,15 @@
 #include "elist.h"
 
 static struct elist * jobs_list;
-
-int handle_cd(struct elist *tokens)
-{
-    char *path;
-    if (elist_size(tokens) == 1)
-    {
-        struct passwd *pw = getpwuid(getuid());
-        char *homedir = pw->pw_dir;
-        LOG("home dir: %s\n", homedir);
-        path = homedir;
-    }
-    else if (elist_size(tokens) == 2)
-    {
-        path = *(char **)elist_get(tokens, 1);
-    }
-    else
-    {
-        perror("receiving too many argument");
-        return 2;
-    }
-    LOG("path: %s\n", path);
-
-    if (chdir(path) != 0)
-    {
-        perror("cd error: ");
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int handle_history(struct elist *tokens)
-{
-
-    if (elist_size(tokens) == 1)
-    {
-        hist_print();
-        return 0;
-    }
-    else
-    {
-        perror("receiving too many argument\n");
-        return 1;
-    }
-}
-
-int handle_child_excution(struct elist *tokens) {
-    char **arguments = (char **)elist_get_list(tokens);
-    LOG("child process, excueting: %s\n", *arguments);
-
-    // add null terminator if size is larger than 1
-    if (elist_add_new(tokens) == NULL) {
-        perror("error elist_add_new");
-        return -1;
-    }
-    
-    arguments[elist_size(tokens) - 1] = NULL;
-    return execvp(*(char **)elist_get(tokens, 0), arguments);
-} 
-
-void handle_jobs(void)
-{   
-    LOG("jobs of len: %zu\n", elist_size(jobs_list));
-    size_t idx = 0;
-    while (idx < elist_size(jobs_list)) {
-        printf("[%zu] %d\n", idx, *(pid_t *) elist_get(jobs_list, idx));
-        idx++;
-    }
-}
-
-void sigint_handler(int num) {
-    perror("child interupted");
-    exit(EINTR);
-}
-
-char *next_token(char **str_ptr, const char *delim)
-{
-    if (*str_ptr == NULL || **str_ptr == '\0')
-    {
-        LOGP("return null\n");
-        return NULL;
-    }
-
-    size_t tok_start = strspn(*str_ptr, delim);
-    size_t tok_end = strcspn(*str_ptr + tok_start, delim);
-
-    if (tok_end == 0)
-    {
-        return NULL;
-    }
-
-    char *current_ptr = *str_ptr + tok_start;
-
-    *str_ptr += tok_start + tok_end;
-
-    if (**str_ptr != '\0')
-    {
-        **str_ptr = '\0';
-        (*str_ptr)++;
-    }
-
-    return current_ptr;
-}
-
-int handle_redirect_helper(char *fname, int open_flages, int open_perms, size_t redir_Out) {
-    int fd = open(fname, open_flages, open_perms);
-    if (fd == -1) {
-        perror("open");
-        return 1;
-    }
-
-    if (dup2(fd, fileno(redir_Out == 0 ? stdout : stdin)) == -1) {
-        perror("dup2");
-        close(fd);
-        return 1;
-    }
-   
-    close(fd);
-    return 0;
-}
-
-int handle_redirect(struct elist *tokens) {
-    size_t idx = 0;
-    int open_perms = 0666;
-    int create_flags = O_RDWR | O_CREAT | O_TRUNC;
-    int append_flags = O_RDWR | O_CREAT | O_APPEND;
-
-    int newSize = elist_size(tokens);
-    int redirectRes = 0;
-    while (idx < elist_size(tokens))
-    {   
-        char *current_cmd = *(char **) elist_get(tokens, idx++);
-        if (strcmp(current_cmd, ">") == 0) {
-            newSize = newSize == elist_size(tokens) ? idx : newSize;
-            char * fname = *(char **) elist_get(tokens, idx++);
-            redirectRes = handle_redirect_helper(fname, create_flags, open_perms, 0);
-        } else if (strcmp(current_cmd, ">>") == 0) {
-            newSize = newSize == elist_size(tokens) ? idx : newSize;
-            char * fname = *(char **) elist_get(tokens, idx++);
-            redirectRes = handle_redirect_helper(fname, append_flags, open_perms, 0);
-        } else if (strcmp(current_cmd, "<") == 0) {
-            newSize = newSize == elist_size(tokens) ? idx : newSize;
-            char * fname = *(char **) elist_get(tokens, idx++);
-            redirectRes = handle_redirect_helper(fname, O_RDONLY, open_perms, 1);
-        }
-        LOG("idx %zu\n", idx);
-    }
-    LOGP("traverse done\n");
-
-    if (newSize != elist_size(tokens)) {
-        elist_set_capacity(tokens, newSize);
-            elist_remove(tokens, newSize - 1);
-    }
-    
-    return redirectRes;
-}
-
-void sigchild_handler(int signo) {
-    pid_t pid;
-    int status;
-    set_status(0);
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        int idx = elist_index_of(jobs_list, &pid);
-        elist_remove(jobs_list, idx);
-        LOG("\npid: %d\n", pid);
-    }
-    LOGP("back ground done\n");
-}
+int handle_cd(struct elist *tokens);
+int handle_history(struct elist *tokens);
+int handle_child_excution(struct elist *tokens);
+void handle_jobs(void);
+void sigint_handler(int num);
+char *next_token(char **str_ptr, const char *delim);
+int handle_redirect_helper(char *fname, int open_flages, int open_perms, size_t redir_Out);
+int handle_redirect(struct elist *tokens);
+void sigchild_handler(int signo);
 
 int main(void)
 {   
@@ -426,4 +263,174 @@ int main(void)
     elist_destroy(jobs_list);
 
     return childProcessRes;
+}
+
+int handle_cd(struct elist *tokens)
+{
+    char *path;
+    if (elist_size(tokens) == 1)
+    {
+        struct passwd *pw = getpwuid(getuid());
+        char *homedir = pw->pw_dir;
+        LOG("home dir: %s\n", homedir);
+        path = homedir;
+    }
+    else if (elist_size(tokens) == 2)
+    {
+        path = *(char **)elist_get(tokens, 1);
+    }
+    else
+    {
+        perror("receiving too many argument");
+        return 2;
+    }
+    LOG("path: %s\n", path);
+
+    if (chdir(path) != 0)
+    {
+        perror("cd error: ");
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int handle_history(struct elist *tokens)
+{
+
+    if (elist_size(tokens) == 1)
+    {
+        hist_print();
+        return 0;
+    }
+    else
+    {
+        perror("receiving too many argument\n");
+        return 1;
+    }
+}
+
+int handle_child_excution(struct elist *tokens) {
+    char **arguments = (char **)elist_get_list(tokens);
+    LOG("child process, excueting: %s\n", *arguments);
+
+    // add null terminator if size is larger than 1
+    if (elist_add_new(tokens) == NULL) {
+        perror("error elist_add_new");
+        return -1;
+    }
+    
+    arguments[elist_size(tokens) - 1] = NULL;
+    return execvp(*(char **)elist_get(tokens, 0), arguments);
+} 
+
+void handle_jobs(void)
+{   
+    LOG("jobs of len: %zu\n", elist_size(jobs_list));
+    size_t idx = 0;
+    while (idx < elist_size(jobs_list)) {
+        printf("[%zu] %d\n", idx, *(pid_t *) elist_get(jobs_list, idx));
+        idx++;
+    }
+}
+
+void sigint_handler(int num) {
+    perror("child interupted");
+    exit(EINTR);
+}
+
+char *next_token(char **str_ptr, const char *delim)
+{
+    if (*str_ptr == NULL || **str_ptr == '\0')
+    {
+        LOGP("return null\n");
+        return NULL;
+    }
+
+    size_t tok_start = strspn(*str_ptr, delim);
+    size_t tok_end = strcspn(*str_ptr + tok_start, delim);
+
+    if (tok_end == 0)
+    {
+        return NULL;
+    }
+
+    char *current_ptr = *str_ptr + tok_start;
+
+    *str_ptr += tok_start + tok_end;
+
+    if (**str_ptr != '\0')
+    {
+        **str_ptr = '\0';
+        (*str_ptr)++;
+    }
+
+    return current_ptr;
+}
+
+int handle_redirect_helper(char *fname, int open_flages, int open_perms, size_t redir_Out) {
+    int fd = open(fname, open_flages, open_perms);
+    if (fd == -1) {
+        perror("open");
+        return 1;
+    }
+
+    if (dup2(fd, fileno(redir_Out == 0 ? stdout : stdin)) == -1) {
+        perror("dup2");
+        close(fd);
+        return 1;
+    }
+   
+    close(fd);
+    return 0;
+}
+
+int handle_redirect(struct elist *tokens) {
+    size_t idx = 0;
+    int open_perms = 0666;
+    int create_flags = O_RDWR | O_CREAT | O_TRUNC;
+    int append_flags = O_RDWR | O_CREAT | O_APPEND;
+
+    int newSize = elist_size(tokens);
+    int redirectRes = 0;
+    while (idx < elist_size(tokens))
+    {   
+        char *current_cmd = *(char **) elist_get(tokens, idx++);
+        if (strcmp(current_cmd, ">") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, create_flags, open_perms, 0);
+        } else if (strcmp(current_cmd, ">>") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, append_flags, open_perms, 0);
+        } else if (strcmp(current_cmd, "<") == 0) {
+            newSize = newSize == elist_size(tokens) ? idx : newSize;
+            char * fname = *(char **) elist_get(tokens, idx++);
+            redirectRes = handle_redirect_helper(fname, O_RDONLY, open_perms, 1);
+        }
+        LOG("idx %zu\n", idx);
+    }
+    LOGP("traverse done\n");
+
+    if (newSize != elist_size(tokens)) {
+        elist_set_capacity(tokens, newSize);
+            elist_remove(tokens, newSize - 1);
+    }
+    
+    return redirectRes;
+}
+
+void sigchild_handler(int signo) {
+    pid_t pid;
+    int status;
+    set_status(0);
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        int idx = elist_index_of(jobs_list, &pid);
+        elist_remove(jobs_list, idx);
+        LOG("\npid: %d\n", pid);
+    }
+    LOGP("back ground done\n");
 }
