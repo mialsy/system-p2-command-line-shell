@@ -1,3 +1,18 @@
+
+/** @file console.c
+ *  @brief A console driver.
+ *
+ *  These empty function definitions are provided
+ *  so that stdio will build without complaining.
+ *  You will need to fill these functions in. This
+ *  is the implementation of the console driver.
+ *  Important details about its implementation
+ *  should go in these comments.
+ *
+ *  @author Harry Q. Bovik (hqbovik)
+ *  @bug No know bugs.
+ */
+
 #include <fcntl.h>
 #include <sys/prctl.h>
 #include <errno.h>
@@ -92,7 +107,7 @@ void handle_jobs(void)
     }
 }
 
-void handle_signint(int num) {
+void sigint_handler(int num) {
     perror("child interupted");
     exit(EINTR);
 }
@@ -353,9 +368,11 @@ int main(void)
                     _exit(1);
                 }
             
-                signal(SIGINT, handle_signint);
+                signal(SIGINT, sigint_handler);
                 childProcessRes = handle_child_excution(tokens);
                 elist_destroy(tokens);
+                hist_destroy();
+                elist_destroy(jobs_list);
                 _exit(childProcessRes);
             } else {
                 int status = 0;
@@ -381,6 +398,7 @@ int main(void)
     LOGP("fre4\n");
     free(command);
     hist_destroy();
+    elist_destroy(jobs_list);
 
     return childProcessRes;
 }

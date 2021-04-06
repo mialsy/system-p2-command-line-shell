@@ -1,3 +1,16 @@
+
+/** @file ui.c
+ *  @brief The c file for UI functionality for crash program.
+ *
+ *  This c fine contains elements to construct the ui 
+ * and functions to help building the ui, including:
+ * 1. functions getting command number, username, hostname,
+ * the current working directy and process exit status;
+ * 2. functions to set the process status
+ * 3. key up and key down function to handle rolling back or moving forward
+ * in command history.
+ */
+
 #include <stdio.h>
 #include <readline/readline.h>
 #include <limits.h>
@@ -10,11 +23,16 @@
 #include "logger.h"
 #include "ui.h"
 
-static const char *good_str = "😌";
-static const char *bad_str  = "🤯";
-static unsigned int command_count = 0;
-static int history_offset = 0;
-static int status_code = 0;
+static const char *good_str = "😌";         /**< emoji to display when process status is good*/
+static const char *bad_str  = "🤯";         /**< emoji to display when process status is bad*/
+static unsigned int command_count = 0;      /**< current command number*/
+static int history_offset = 0;              /**< offset of history index, calculated by key up and key down */
+static int status_code = 0;                 /**< previous process status code*/
+
+/** 
+ * Helper method to set up readline
+ * @return 0 on succcess
+ */
 static int readline_init(void);
 
 void set_status(int num) {
@@ -34,10 +52,8 @@ void init_ui(void)
 
 void destroy_ui(void)
 {
-    // TODO cleanup code, if necessary
 }
 
-// do not need to change
 char *prompt_line(void)
 {
     const char *status = prompt_status() ? bad_str : good_str;

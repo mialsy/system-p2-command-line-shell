@@ -1,3 +1,14 @@
+/** @file history.c
+ *  @brief  shell history data structures and retrieval functions.
+ *
+ *  These empty function definitions are provided
+ *  so that stdio will build without complaining.
+ *  You will need to fill these functions in. This
+ *  is the implementation of the console driver.
+ *  Important details about its implementation
+ *  should go in these comments.
+ */
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
