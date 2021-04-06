@@ -312,9 +312,9 @@ int main(void)
         else if (strncmp("!", first_cmd, 1) == 0)
         {
             // hist excute, need to set up go to and command
-            if (elist_size(tokens) != 1)
+            if (elist_size(tokens) != 1 || strlen(first_cmd) <= 1)
             {
-                perror("too many argument");
+                perror("argument issue");
                 set_status(1);
             }
             else
@@ -328,7 +328,8 @@ int main(void)
                 }
                 // as hist num range start from 1
                 // error in atoi would be handled in search num
-                const char *hist_item = isalpha((const char *)(first_cmd + 1)) == 0 ? 
+                LOG("cnum: %d\n", hist_num);
+                const char *hist_item = isalpha(*(const char *)(first_cmd + 1)) == 0 ? 
                 hist_search_cnum(hist_num) 
                 : hist_search_prefix(first_cmd + 1);
                 if (hist_item == NULL)
