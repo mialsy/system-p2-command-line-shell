@@ -16,6 +16,14 @@
 */
 void set_status(int num);
 
+
+/**
+ * @brief Set the scripting mode
+ * 
+ * @param is_script is scripting mode or not
+ */
+void set_scripting(int is_script);
+
 /**
  * @brief Initiate the ui
 */

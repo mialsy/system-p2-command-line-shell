@@ -124,39 +124,27 @@ void print_usage(void) {
 int main(void)
 {   
     if (isatty(STDIN_FILENO)) {
-        init_ui();
         print_usage();
         LOGP("stdin is a TTY; entering interactive mode\n");
     } else {
+        set_scripting(1);
         LOGP("data piped in on stdin; entering script mode\n");
     }
-
+    
+    init_ui();
     hist_init(100);
     jobs_list = elist_create(10, sizeof(pid_t));
 
     int childProcessRes = 0;
 
-    char *command = NULL;
+    char *command;
 
     signal(SIGINT, SIG_IGN);
     signal(SIGCHLD, sigchild_handler);
 
-    size_t len = 0;
-
-    while (isatty(STDIN_FILENO) || getline(&command, &len, stdin) != -1)
+    while (true)
     {
-        
-        if (isatty(STDIN_FILENO)) {
-            command = read_command();
-        } else { 
-            // for taking command from getline, need to remove \n 
-            size_t idx = strlen(command) - 1;
-            
-            if( command[idx] == '\n' ) {
-                command[idx] = '\0';
-            }
-        }
-        
+        command = read_command();   
     label:
         if (command == NULL)
         {
@@ -168,12 +156,9 @@ int main(void)
             continue;
         }
         
-        char * copy = NULL;
         if (strncmp(command, "!", 1) != 0)
         {
-            copy = malloc(strlen(command) + 1);
-            strcpy(copy, command);
-            hist_add(&copy);
+            hist_add(&command);
         }
 
         struct elist *tokens = elist_create(10, sizeof(char **));
@@ -263,9 +248,6 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
-            if (copy != NULL) {
-                free(copy);
-            } 
             LOGP("fre2\n");
             break;
         }
@@ -298,9 +280,7 @@ int main(void)
                 // process redirect
                 if (handle_redirect(tokens) != 0) {
                     elist_destroy(tokens);
-                    if (copy != NULL) {
-                        free(copy);
-                    } 
+                    
                     _exit(1);
                 }
             
@@ -309,9 +289,7 @@ int main(void)
                 elist_destroy(tokens);
                 hist_destroy();
                 elist_destroy(jobs_list);
-                if (copy != NULL) {
-                    free(copy);
-                } 
+                destroy_ui();
                 _exit(childProcessRes);
             } else {
                 int status = 0;
@@ -335,6 +313,7 @@ int main(void)
     }
     LOGP("fre4\n");
     free(command);
+    destroy_ui();
     hist_destroy();
     elist_destroy(jobs_list);
 

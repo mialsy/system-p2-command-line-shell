@@ -27,6 +27,9 @@ static const char *bad_str  = "🤯";         /**< emoji to display when process
 static unsigned int command_count = 0;      /**< current command number*/
 static int history_offset = 0;              /**< offset of history index, calculated by key up and key down */
 static int status_code = 0;                 /**< previous process status code*/
+static char *line; 
+size_t line_sz = 0;
+static int scripting = 0;
 
 /** 
  * @brief Helper method to set up readline
@@ -37,6 +40,10 @@ static int readline_init(void);
 
 void set_status(int num) {
     status_code = num;
+}
+
+void set_scripting(int is_script) {
+    scripting = is_script;
 }
 
 void init_ui(void)
@@ -52,6 +59,7 @@ void init_ui(void)
 
 void destroy_ui(void)
 {
+    free(line);
 }
 
 char *prompt_line(void)
@@ -139,10 +147,20 @@ unsigned int prompt_cmd_num(void)
 
 char *read_command(void)
 {
-    char *prompt = prompt_line();
-    char *command = readline(prompt);
-    free(prompt);
-    return command;
+    if (scripting == 0) {
+        char *prompt = prompt_line();
+        char *command = readline(prompt);
+        free(prompt);
+        return command;
+    } else {
+        ssize_t read_sz = getline(&line, &line_sz, stdin);
+        if (read_sz == -1) {
+            return NULL;
+        }  
+        line[read_sz - 1] = '\0';
+        return line;
+    }
+    
 }
 
 int readline_init(void)
