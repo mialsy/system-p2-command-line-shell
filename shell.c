@@ -111,14 +111,14 @@ void sigchild_handler(int signo);
 void print_usage(void) {
     printf("============== welcome to crash ==============\n");
     printf("crash is a command line shell that supports: \n ");
-    printf("1. build in functions: \n");
-    printf("\t 1.1 cd - for entering directory\n;");
-    printf("\t 1.2 history - for review command history\n;");
-    printf("\t 1.3 !<command number> or !<command prefix> or !! - for executing history command\n;");
-    printf("\t 1.4 jobs - for listing currently-running background jobs\n;");
-    printf("\t 1.5 exit - for exiting the crash\n;");
-    printf("2. & - background job\n");
-    printf("3. # - comment\n");
+    printf("\t1. build in functions: \n");
+    printf("\t\t1.1 cd - for entering directory\n");
+    printf("\t\t1.2 history - for review command history\n");
+    printf("\t\t1.3 !<command number> \n\t\tor !<command prefix> \n\t\tor !! - for executing history command\n");
+    printf("\t\t1.4 jobs - for listing currently-running background jobs\n");
+    printf("\t\t1.5 exit - for exiting the crash\n");
+    printf("\t2. & - background job\n");
+    printf("\t3. # - comment\n");
 }
 
 int main(void)
@@ -137,6 +137,7 @@ int main(void)
     int childProcessRes = 0;
 
     char *command = NULL;
+    char *copy = NULL;
 
     signal(SIGINT, SIG_IGN);
     signal(SIGCHLD, sigchild_handler);
@@ -168,10 +169,14 @@ int main(void)
             continue;
         }
         
-        char * copy = NULL;
         if (strncmp(command, "!", 1) != 0)
         {
+            // TODO: fix issue with free here
             copy = malloc(strlen(command) + 1);
+            if (copy == NULL) {
+                perror("copy error");
+                break;
+            }
             strcpy(copy, command);
             hist_add(&copy);
         }
@@ -263,9 +268,6 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
-            if (copy != NULL) {
-                free(copy);
-            } 
             LOGP("fre2\n");
             break;
         }
@@ -298,10 +300,8 @@ int main(void)
                 // process redirect
                 if (handle_redirect(tokens) != 0) {
                     elist_destroy(tokens);
-                    if (copy != NULL) {
-                        free(copy);
-                    } 
-                    _exit(1);
+                    childProcessRes = 1;
+                    break;
                 }
             
                 signal(SIGINT, sigint_handler);
@@ -309,9 +309,7 @@ int main(void)
                 elist_destroy(tokens);
                 hist_destroy();
                 elist_destroy(jobs_list);
-                if (copy != NULL) {
-                    free(copy);
-                } 
+                free(copy);
                 _exit(childProcessRes);
             } else {
                 int status = 0;
@@ -334,6 +332,7 @@ int main(void)
         
     }
     LOGP("fre4\n");
+    free(copy);
     free(command);
     hist_destroy();
     elist_destroy(jobs_list);
