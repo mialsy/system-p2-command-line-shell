@@ -1,6 +1,15 @@
 /** @file elist.c
  *  @brief elastic list data structure and its supportive method. 
  *
+ * This file include:
+ * 1. struct elist stores the element and metadata of the elist.
+ * 2. elist opreation functions including:
+ *  2.1 creating, sorting, and destorying the elist;
+ *  2.2 clearing out the memory on elist;
+ *  2.3 getting and resetting the elist capacity;
+ *  2.4 getting the elist size;
+ *  2.5 adding, getting, setting, and searching one element in the elist.
+ * 3. helper method idx_is_valid(struct elist *, size_t) to support checking if a given index is valid.
  *  
  */
 
