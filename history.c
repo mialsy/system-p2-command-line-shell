@@ -1,12 +1,7 @@
 /** @file history.c
  *  @brief  shell history data structures and retrieval functions.
  *
- *  These empty function definitions are provided
- *  so that stdio will build without complaining.
- *  You will need to fill these functions in. This
- *  is the implementation of the console driver.
- *  Important details about its implementation
- *  should go in these comments.
+ * This file 
  */
 
 #include <ctype.h>
@@ -164,7 +159,8 @@ unsigned int hist_last_cnum(void)
 
 void test_hist(void) {
 
-    // test 
+    // TODO: delete this in final submission 
+    // for debugging
     hist_init(5);
     char * str = "ls";
     char * str2 = "pwd";
