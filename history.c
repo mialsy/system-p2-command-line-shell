@@ -62,7 +62,6 @@ void hist_init(unsigned int limit)
 
 void hist_add(void *cmd)
 {
-    // LOG("hist add: %s",* (char **) cmd);
     if (list == NULL) {
         perror("histroy list does not exits");
     }

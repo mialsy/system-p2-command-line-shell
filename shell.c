@@ -182,7 +182,6 @@ int main(void)
         
         if (strncmp(command, "!", 1) != 0)
         {
-            // TODO: fix issue with free here
             copy = malloc(strlen(command) + 1);
             if (copy == NULL) {
                 perror("copy error");
