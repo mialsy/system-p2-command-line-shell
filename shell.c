@@ -9,25 +9,23 @@
  */
 
 #include <ctype.h>
-#include <fcntl.h>
-#include <sys/prctl.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <pwd.h>
 #include <readline/readline.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/param.h>
+#include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
 
+#include "elist.h"
 #include "history.h"
 #include "logger.h"
 #include "ui.h"
-#include "elist.h"
 
 #define DISPLAY_LIMIT 100   /**< jobs displaying limit, if command for a job is longer than 100, it got truncated */
 #define HIST_LIMIT 100      /**< history list storage limit, older than 100 history command would be overrided */
@@ -353,7 +351,6 @@ int handle_cd(struct elist *tokens)
         perror("receiving too many argument");
         return 2;
     }
-    LOG("path: %s\n", path);
 
     if (chdir(path) != 0)
     {

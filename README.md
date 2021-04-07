@@ -37,6 +37,7 @@ Here is a list of files that is included:
         - adding, getting, setting, and searching one element in the elist;
         - **New feature:** partial match search is also supported in this version of elist. 
     - helper method ```idx_is_valid(struct elist *, size_t)``` to support checking if a given index is valid.
+- **elist.h**: header files for elist.
 - **logger.h**: Included for log output. 
 
 Header filess are also included for the c files.

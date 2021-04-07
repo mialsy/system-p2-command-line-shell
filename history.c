@@ -17,8 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "logger.h"
 #include "history.h"
+#include "logger.h"
 
 struct hist_clist *list = NULL;
 
