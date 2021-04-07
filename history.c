@@ -60,15 +60,6 @@ void hist_init(unsigned int limit)
     }
 }
 
-
-void hist_destroy(void)
-{   
-    if (list != NULL) {
-        free(list->cmd_storage);
-        free(list);
-    }
-}
-
 void hist_add(void *cmd)
 {
     // LOG("hist add: %s",* (char **) cmd);
@@ -76,7 +67,10 @@ void hist_add(void *cmd)
         perror("histroy list does not exits");
     }
     size_t idx = list->insertions % list->capacity;
-    void *ptr = (void *)((char *)list->cmd_storage + idx * (sizeof(char *)));
+    char **ptr = (char **)((char *)list->cmd_storage + idx * (sizeof(char *)));
+    if (list->insertions >= list->capacity) {
+        free(*ptr);
+    }
     memcpy(ptr, cmd, sizeof(char *));
     list->insertions++;
 }
@@ -166,6 +160,20 @@ const char *hist_search_prefix(char *prefix)
 unsigned int hist_last_cnum(void)
 {
     return list->insertions;
+}
+
+
+void hist_destroy(void)
+{   
+    if (list != NULL) {
+        struct iterator iter = create_iter();
+        char ** elem;
+        while ((elem = iterate_rev(&iter)) != NULL) {
+            free(*elem);
+        }
+        free(list->cmd_storage);
+        free(list);
+    }
 }
 
 void test_hist(void) {

@@ -304,7 +304,6 @@ int main(void)
                 elist_destroy(tokens);
                 hist_destroy();
                 elist_destroy(jobs_list);
-                free(copy);
                 _exit(childProcessRes);
             } else {
                 int status = 0;
@@ -323,7 +322,6 @@ int main(void)
         elist_destroy(tokens);
         
     }
-    free(copy);
     free(command);
     hist_destroy();
     elist_destroy(jobs_list);
