@@ -1,8 +1,8 @@
 # Project 2: Command Line Shell
 
-**Author**: [Chuxi Wang](https://www.instagram.com/_mialsy_/ "click here to see awesome kitties, helps me survive this class :)") 
+**Author**: [Chuxi Wang](https://www.instagram.com/_mialsy_/ "click here to see awesome kitties, helps me survive this project :)") 
 
-**Summmary**: This is the project 2 for CS 521 System Programming.
+**Summmary**: This is the project 2 for CS 521 System Programming. In this project, I implemented a command line text-based interface shell named ```crash```, which allows the user to execute shell built-ins (inlcuding ```cd```,```history```, ```jobs```, background execution, and history execution), as well as external executable programs in interactive mode or scripting mode. 
 
 ## About the project
 
@@ -10,11 +10,16 @@
 
 ### Data Structure - clist and elist
 #### What is a clist and why are we using it?
+
+To support the built-in history browsing and retriving, an history list based on circular array structure is included. 
+
 #### Elist and partial matching search in elist
 For elist implementaion, please refer to P1 readme file.
 
 ### Implemtation - process, built-in and external command
-#### What is process?
+#### What is a process?
+
+#### What is a signal? 
 
 #### Built-in "crash" functions
 
