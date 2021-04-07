@@ -34,6 +34,16 @@
 static struct elist * jobs_list; /**< static global varible, a elist structure to hold back ground jobs*/
 
 /**
+ * @brief struct to store the job item
+ * 
+ */
+struct job_item
+{
+    pid_t pid;                      /**< pid of the job*/
+    char command[DISPLAY_LIMIT];    /**< command to display for the job, only store display limit*/
+};
+
+/**
  * @brief built-in cd function for crash
  * 
  * @param tokens tokenzied command
@@ -108,32 +118,10 @@ void sigchild_handler(int signo);
 /**
  * @brief Print usage for interactive mode.
  */
-void print_usage(void) {
-    printf("============== welcome to crash ==============\n");
-    printf("crash is a command line shell that supports: \n ");
-    printf("\t1. build in functions: \n");
-    printf("\t\t1.1 cd - for entering directory\n");
-    printf("\t\t1.2 history - for review command history\n");
-    printf("\t\t1.3 !<command number> \n\t\tor !<command prefix> \n\t\tor !! - for executing history command\n");
-    printf("\t\t1.4 jobs - for listing currently-running background jobs\n");
-    printf("\t\t1.5 exit - for exiting the crash\n");
-    printf("\t2. & - background job\n");
-    printf("\t3. # - comment\n");
-}
-
-/**
- * @brief struct to store the job item
- * 
- */
-struct job_item
-{
-    pid_t pid;                      /**< pid of the job*/
-    char command[DISPLAY_LIMIT];    /**< command to display for the job, only store display limit*/
-};
+void print_usage(void);
 
 /**
  * @brief say goodbye in interactive mode
- * 
  */
 void say_goodbye(void);
 
@@ -504,6 +492,19 @@ void sigchild_handler(int signo) {
         elist_remove(jobs_list, idx);
         set_status(status);
     }
+}
+
+void print_usage(void) {
+    printf("============== welcome to crash ==============\n");
+    printf("crash is a command line shell that supports: \n ");
+    printf("\t1. build in functions: \n");
+    printf("\t\t1.1 cd - for entering directory\n");
+    printf("\t\t1.2 history - for review command history\n");
+    printf("\t\t1.3 !<command number> \n\t\tor !<command prefix> \n\t\tor !! - for executing history command\n");
+    printf("\t\t1.4 jobs - for listing currently-running background jobs\n");
+    printf("\t\t1.5 exit - for exiting the crash\n");
+    printf("\t2. & - background job\n");
+    printf("\t3. # - comment\n");
 }
 
 void say_goodbye(void) {
