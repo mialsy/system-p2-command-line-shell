@@ -10,8 +10,8 @@
 
 ### Data Structure - clist and elist
 #### What is a clist and why are we using it?
-#### Elist recap:
-Please refer to: 
+#### Elist and partial matching search in elist
+For elist implementaion, please refer to P1 readme file.
 
 ### Implemtation - process, built-in and external command
 #### What is process?
@@ -34,9 +34,9 @@ Here is a list of files that is included:
         - clearing out the memory on elist;
         - getting and resetting the elist capacity;
         - getting the elist size;
-        - adding, getting, setting, and searching one element in the elist.
+        - adding, getting, setting, and searching one element in the elist;
+        - **New feature:** partial match search is also supported in this version of elist. 
     - helper method ```idx_is_valid(struct elist *, size_t)``` to support checking if a given index is valid.
-- **util.c**: This includes utilly methods for converting raw size in byte and time in millosecond to human readble format. 
 - **logger.h**: Included for log output. 
 
 Header filess are also included for the c files.
@@ -120,7 +120,6 @@ exit
 [miasly@dirtmouth P2-mialsy]$ 
 ```
 
-
 ## Testing
 
 For running the test cases, use ```make test```. For updating test cases, runs ```make testupdate```. 
@@ -129,18 +128,16 @@ For more detailed testing, please refer to below:
 
 - Run all tests:
     ```console
-    [miasly@dirtmouth P1-mialsy]$ make test
+    [miasly@dirtmouth P2-mialsy]$ make test
     ```
 - Run one test (let's say we want to run test x):
     ```console
-    [miasly@dirtmouth P1-mialsy]$ make test run=[x]
+    [miasly@dirtmouth P2-mialsy]$ make test run=[x]
     ```
 
 - Run a few tests (let's say we want to run test x, y, z):
     ```console
-    [miasly@dirtmouth P1-mialsy]$ make test run='[x] [y] [z]'
+    [miasly@dirtmouth P2-mialsy]$ make test run='[x] [y] [z]'
     ```
 
 - **Note**: before run the test case, make sure you are in the correct directory with the makefile.
-
-<>
