@@ -1,3 +1,9 @@
+/** @file elist.c
+ *  @brief elastic list data structure and its supportive method. 
+ *
+ *  
+ */
+
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -144,7 +150,7 @@ ssize_t elist_add(struct elist *list, void *item)
     size_t index = list->size++;
    
 
-    void *item_ptr = list->element_storage + index * list->item_sz;
+    void *item_ptr =(void *)((char *)list->element_storage + index * list->item_sz);
 
     memcpy(item_ptr, item, list->item_sz);
 
@@ -179,7 +185,7 @@ void *elist_add_new(struct elist *list)
         list->element_storage = newStorage;
     }
     size_t index = list->size++;
-    void *item_ptr = list->element_storage + index * list->item_sz;
+    void *item_ptr = (void *)((char *)list->element_storage + index * list->item_sz);
     
     return item_ptr;
 }
@@ -199,7 +205,7 @@ void *elist_get(struct elist *list, size_t idx)
     if (!idx_is_valid(list, idx)) {
         return NULL;
     }
-    void *item_ptr = list->element_storage + idx * list->item_sz;
+    void *item_ptr = (void *)((char *)list->element_storage + idx * list->item_sz);
     return item_ptr;
 }
 

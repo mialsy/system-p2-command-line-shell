@@ -322,7 +322,7 @@ int main(void)
                     LOG("back: %zu\n", isBackground);
                     set_status(status);
                 } else {
-                    wait(&status);
+                    waitpid(child, &status, 0);
                     set_status(status);
                 }
                 LOG("child status %d\n", status);

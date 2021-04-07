@@ -70,7 +70,7 @@ void hist_add(void *cmd)
         perror("histroy list does not exits");
     }
     size_t idx = list->insertions % list->capacity;
-    void *ptr = list->cmd_storage + idx * (sizeof(char *));
+    void *ptr = (void *)((char *)list->cmd_storage + idx * (sizeof(char *)));
     memcpy(ptr, cmd, sizeof(char *));
     list->insertions++;
 }
@@ -92,7 +92,7 @@ void *get_idx(int idx)
 
     size_t real_idx = idx % list->capacity;
 
-    return list->cmd_storage + real_idx * sizeof(char *);
+    return (void *)((char *)list->cmd_storage + real_idx * sizeof(char *));
 }
 
 int hist_idx_isValid(int idx) 
