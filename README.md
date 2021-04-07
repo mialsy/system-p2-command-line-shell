@@ -74,10 +74,10 @@ miasly
   4 history
 ```
 
-The example out put of running crash on interactive mode is as follow. 
+The example output of running crash on interactive mode is as follow. 
 
 ```console
-miasly@dirtmouth P2-mialsy]$ ./crash
+[miasly@dirtmouth P2-mialsy]$ ./crash
 ui.c:44:init_ui(): Initializing UI...
 ui.c:47:init_ui(): Setting locale: en_US.UTF-8
 ============== welcome to crash ==============
@@ -92,25 +92,32 @@ crash is a command line shell that supports:
                 1.5 exit - for exiting the crash
         2. & - background job
         3. # - comment
-shell.c:129:main(): stdin is a TTY; entering interactive mode
+shell.c:137:main(): stdin is a TTY; entering interactive mode
 >>-[😌]-[1]-[miasly@dirtmouth:~/projects/P2-mialsy]-> ls
-cat.txt       elist.c  hist       history.o    logger.h    read       shell.c  ui.c  valgrind_out.txt
-commands.txt  elist.h  history.c  libelist.so  Makefile    README.md  shell.o  ui.h
-crash         elist.o  history.h  libshell.so  named_pipe  res.txt    tests    ui.o
->>-[😌]-[2]-[miasly@dirtmouth:~/projects/P2-mialsy]-> pwd
-/home/miasly/projects/P2-mialsy
->>-[😌]-[3]-[miasly@dirtmouth:~/projects/P2-mialsy]-> &sleep 30
-shell.c:320:main(): back: 1
->>-[😌]-[4]-[miasly@dirtmouth:~/projects/P2-mialsy]-> jobs
-shell.c:405:handle_jobs(): jobs of len: 1
-[0] 1786780
->>-[😌]-[5]-[miasly@dirtmouth:~/projects/P2-mialsy]-> what the hack
->>-[🤯]-[6]-[miasly@dirtmouth:~/projects/P2-mialsy]-> sleep 3
+crash    elist.h  history.c  history.o    libshell.so  Makefile   shell.c  tests  ui.h
+elist.c  elist.o  history.h  libelist.so  logger.h     README.md  shell.o  ui.c   ui.o
+>>-[😌]-[2]-[miasly@dirtmouth:~/projects/P2-mialsy]-> !!
+crash    elist.h  history.c  history.o    libshell.so  Makefile   shell.c  tests  ui.h
+elist.c  elist.o  history.h  libelist.so  logger.h     README.md  shell.o  ui.c   ui.o
+>>-[😌]-[3]-[miasly@dirtmouth:~/projects/P2-mialsy]-> history
+  1 ls
+  2 ls
+  3 history
+>>-[😌]-[4]-[miasly@dirtmouth:~/projects/P2-mialsy]-> sleep fefef
+sleep: invalid time interval ‘fefef’
+Try 'sleep --help' for more information.
+>>-[🤯]-[5]-[miasly@dirtmouth:~/projects/P2-mialsy]-> sleep 30 &
+>>-[🤯]-[6]-[miasly@dirtmouth:~/projects/P2-mialsy]-> ls
+crash    elist.h  history.c  history.o    libshell.so  Makefile   shell.c  tests  ui.h
+elist.c  elist.o  history.h  libelist.so  logger.h     README.md  shell.o  ui.c   ui.o
 >>-[😌]-[7]-[miasly@dirtmouth:~/projects/P2-mialsy]-> jobs
-shell.c:405:handle_jobs(): jobs of len: 1
-[0] 1786780
->>-[😌]-[8]-[miasly@dirtmouth:~/projects/P2-mialsy]-> sleep 10
-^C>>-[🤯]-[9]-[miasly@dirtmouth:~/projects/P2-mialsy]-> exit
+[0] 1859026 sleep 30 &
+>>-[😌]-[8]-[miasly@dirtmouth:~/projects/P2-mialsy]-> jobs
+[0] 1859026 sleep 30 &
+>>-[😌]-[9]-[miasly@dirtmouth:~/projects/P2-mialsy]-> shell.c:493:sigchild_handler(): job done: 1859026
+shell.c:494:sigchild_handler(): status: 0
+exit
+[miasly@dirtmouth P2-mialsy]$ 
 ```
 
 
