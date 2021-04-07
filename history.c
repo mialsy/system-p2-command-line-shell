@@ -37,8 +37,8 @@ struct hist_clist {
  * 
  */
 struct iterator {
-    unsigned int initialized : 1; /**< initialized or not*/
-    size_t idx; /**< index of iterator*/
+    unsigned int initialized : 1;   /**< initialized or not*/
+    size_t idx;                     /**< index of iterator*/
 };
 
 void hist_init(unsigned int limit)

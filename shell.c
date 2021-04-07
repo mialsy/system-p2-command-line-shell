@@ -279,10 +279,9 @@ int main(void)
         {
             // process background "&"
             size_t isBackground = 0;
-            if (strncmp("&", first_cmd, 1) == 0) {
+            if (strncmp("&", *(char **) elist_get(tokens, elist_size(tokens) - 1), 1) == 0) {
                 isBackground = 1;
-                first_cmd++;
-                elist_set(tokens, 0, &first_cmd);
+                elist_remove(tokens, elist_size(tokens) - 1);
             }
 
             // fork a child process

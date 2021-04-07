@@ -1,6 +1,6 @@
 # Project 2: Command Line Shell
 
-**Author**: [Chuxi Wang](https://www.instagram.com/_mialsy_/ "click here to see my awesome kitties, helps me survive this class :)") 
+**Author**: [Chuxi Wang](https://www.instagram.com/_mialsy_/ "click here to see awesome kitties, helps me survive this class :)") 
 
 **Summmary**: This is the project 2 for CS 521 System Programming.
 
@@ -135,3 +135,5 @@ For more detailed testing, please refer to below:
     ```
 
 - **Note**: before run the test case, make sure you are in the correct directory with the makefile.
+
+<>
