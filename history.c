@@ -175,28 +175,3 @@ void hist_destroy(void)
         free(list);
     }
 }
-
-void test_hist(void) {
-
-    // TODO: delete this in final submission 
-    // for debugging
-    hist_init(5);
-    char * str = "ls";
-    char * str2 = "pwd";
-    hist_add(&str);
-    hist_add(&str2);
-
-
-    hist_print();
-    printf("last: %x\n", hist_last_cnum());
-    // LOGP("I am here\n");
-    char *pre = "!ls";
-    printf("is alpha: %d\n", isalpha('0'));
-    printf("last ls: %s\n", hist_search_prefix(pre + 1));
-    printf("cmd 9: %s\n", hist_search_cnum(9));
-}
-
-// void main(void) {
-//     test_hist();
-// }
-

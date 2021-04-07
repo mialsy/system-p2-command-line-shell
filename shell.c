@@ -1,4 +1,3 @@
-
 /** @file shell.c
  *  @brief The driver for command line shell - crash.
  *
@@ -30,9 +29,10 @@
 #include "ui.h"
 #include "elist.h"
 
-#define DISPLAY_LIMIT 100
+#define DISPLAY_LIMIT 100   /**< jobs displaying limit, if command for a job is longer than 100, it got truncated */
+#define HIST_LIMIT 100      /**< history list storage limit, older than 100 history command would be overrided */
 
-static struct elist * jobs_list; /**< elist structure to hold back ground jobs*/
+static struct elist * jobs_list; /**< static global varible, a elist structure to hold back ground jobs*/
 
 /**
  * @brief built-in cd function for crash
@@ -122,10 +122,14 @@ void print_usage(void) {
     printf("\t3. # - comment\n");
 }
 
+/**
+ * @brief struct to store the job item
+ * 
+ */
 struct job_item
 {
-    pid_t pid;
-    char command[DISPLAY_LIMIT];
+    pid_t pid;                      /**< pid of the job*/
+    char command[DISPLAY_LIMIT];    /**< command to display for the job, only store display limit*/
 };
 
 
@@ -139,8 +143,8 @@ int main(void)
         LOGP("data piped in on stdin; entering script mode\n");
     }
 
-    hist_init(100);
-    jobs_list = elist_create(10, sizeof(struct job_item));
+    hist_init(HIST_LIMIT);
+    jobs_list = elist_create(0, sizeof(struct job_item));
 
     int childProcessRes = 0;
 
@@ -188,7 +192,7 @@ int main(void)
             hist_add(&copy);
         }
 
-        struct elist *tokens = elist_create(10, sizeof(char **));
+        struct elist *tokens = elist_create(0, sizeof(char **));
 
         // tolkenized command and add command to a list
         char *next_tok = command;
@@ -310,6 +314,9 @@ int main(void)
                 if (isBackground != 0) {
                     struct job_item childJob = {child, ""};
                     strncpy(childJob.command, copy, DISPLAY_LIMIT);
+                    if (strlen(copy) >=  DISPLAY_LIMIT) {
+                        memcpy(childJob.command + DISPLAY_LIMIT - 3, "...", 3);
+                    }
                     elist_add(jobs_list, &childJob);
                 } else {
                     waitpid(child, &status, 0);
@@ -489,7 +496,6 @@ void sigchild_handler(int signo) {
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         int idx = elist_index_of_partial(jobs_list, &pid, sizeof(pid_t));
         LOG("job done: %d\n", pid);
-        LOG("status: %d\n", status);
         elist_remove(jobs_list, idx);
         set_status(status);
     }
