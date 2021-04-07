@@ -131,6 +131,11 @@ struct job_item
     char command[DISPLAY_LIMIT];    /**< command to display for the job, only store display limit*/
 };
 
+/**
+ * @brief say goodbye in interactive mode
+ * 
+ */
+void say_goodbye(void);
 
 int main(void)
 {   
@@ -266,6 +271,9 @@ int main(void)
         else if (strcmp("exit", first_cmd) == 0)
         {
             // exit
+            if (isatty(STDIN_FILENO)) {
+                say_goodbye();
+            }
             elist_destroy(tokens);
             break;
         }
@@ -497,3 +505,15 @@ void sigchild_handler(int signo) {
         set_status(status);
     }
 }
+
+void say_goodbye(void) {
+    printf(" ================================ \n");
+    printf("( Goodbye, have a wonderful day! )\n");
+    printf(" ================================ \n");
+    printf("  o\n ");
+    printf("   o\n ");
+    printf("      /\\__)o < \n ");
+    printf("     |       \\  \n ");
+    printf("     | O . O | \n ");
+    printf("      \\_____/ \n ");
+} 
