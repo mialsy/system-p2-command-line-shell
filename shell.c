@@ -164,7 +164,7 @@ int main(void)
             break;
         }
 
-        LOG("Input command: %s\n", command);
+        // LOG("Input command: %s\n", command);
         if (strlen(command) == 0) {
             continue;
         }
@@ -201,7 +201,7 @@ int main(void)
         if (elist_size(tokens) == 0)
         {
             perror("no argument\n");
-            LOGP("fre1\n");
+            // LOGP("fre1\n");
             elist_destroy(tokens);
             continue;
         }
@@ -268,7 +268,7 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
-            LOGP("fre2\n");
+            // LOGP("fre2\n");
             break;
         }
         else if (strcmp("jobs", first_cmd) == 0)
@@ -323,7 +323,7 @@ int main(void)
                     waitpid(child, &status, 0);
                     set_status(status);
                 }
-                LOG("child status %d\n", status);
+                // LOG("child status %d\n", status);
             }
         }
 
@@ -331,7 +331,7 @@ int main(void)
         elist_destroy(tokens);
         
     }
-    LOGP("fre4\n");
+    // LOGP("fre4\n");
     free(copy);
     free(command);
     hist_destroy();

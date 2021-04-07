@@ -1,5 +1,7 @@
 /**
  * @file elist.h
+ * 
+ * @brief header file for elist
  */
 
 #ifndef _ELIST_H_

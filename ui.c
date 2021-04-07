@@ -1,7 +1,7 @@
 /** @file ui.c
  *  @brief The c file for UI functionality for crash program.
  *
- *  This c fine contains elements to construct the ui 
+ *  This c file contains elements to construct the ui 
  * and functions to help building the ui, including:
  * 1. functions getting command number, username, hostname,
  * the current working directy and process exit status;
