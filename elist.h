@@ -166,4 +166,7 @@ size_t elist_size(struct elist *list);
  */
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *));
 
+
+ssize_t elist_index_of_sz(struct elist *list, void *item, size_t cmp_size);
+
 #endif

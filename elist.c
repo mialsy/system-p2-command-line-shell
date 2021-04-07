@@ -259,6 +259,17 @@ ssize_t elist_index_of(struct elist *list, void *item)
     return -1;
 }
 
+
+ssize_t elist_index_of_sz(struct elist *list, void *item, size_t cmp_size)
+{
+    for (size_t idx = 0; idx < list->size; idx++) {
+        if (elist_get(list, idx) != NULL && memcmp(item, elist_get(list, idx), cmp_size) == 0) {
+            return idx;
+        } 
+    }
+    return -1;
+}
+
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *))
 {
     qsort(list->element_storage, list->size, list->item_sz, comparator);

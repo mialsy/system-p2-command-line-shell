@@ -31,6 +31,8 @@
 #include "ui.h"
 #include "elist.h"
 
+#define DISPLAY_LIMIT 100
+
 static struct elist * jobs_list; /**< elist structure to hold back ground jobs*/
 
 /**
@@ -121,6 +123,13 @@ void print_usage(void) {
     printf("\t3. # - comment\n");
 }
 
+struct job_item
+{
+    pid_t pid;
+    char command[DISPLAY_LIMIT];
+};
+
+
 int main(void)
 {   
     if (isatty(STDIN_FILENO)) {
@@ -132,7 +141,7 @@ int main(void)
     }
 
     hist_init(100);
-    jobs_list = elist_create(10, sizeof(pid_t));
+    jobs_list = elist_create(10, sizeof(struct job_item));
 
     int childProcessRes = 0;
 
@@ -315,7 +324,9 @@ int main(void)
                 // LOG("first cmd in parent: %s\n", first_cmd);
                 if (isBackground != 0) {
                     set_status(0);
-                    elist_add(jobs_list, &child);
+                    struct job_item childJob = {child, ""};
+                    strncpy(childJob.command, copy, DISPLAY_LIMIT);
+                    elist_add(jobs_list, &childJob);
                     LOG("back: %zu\n", isBackground);
                     set_status(status);
                 } else {
@@ -404,7 +415,8 @@ void handle_jobs(void)
     LOG("jobs of len: %zu\n", elist_size(jobs_list));
     size_t idx = 0;
     while (idx < elist_size(jobs_list)) {
-        printf("[%zu] %d\n", idx, *(pid_t *) elist_get(jobs_list, idx));
+        struct job_item *current_job = elist_get(jobs_list, idx);  
+        printf("[%zu] %d %s\n", idx, current_job->pid, current_job->command);
         idx++;
     }
 }
@@ -500,7 +512,7 @@ void sigchild_handler(int signo) {
     int status;
     set_status(0);
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        int idx = elist_index_of(jobs_list, &pid);
+        int idx = elist_index_of_sz(jobs_list, &pid, sizeof(pid_t));
         elist_remove(jobs_list, idx);
         // LOG("\npid: %d\n", pid);
     }
