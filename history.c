@@ -1,7 +1,14 @@
 /** @file history.c
  *  @brief  shell history data structures and retrieval functions.
  *
- * This file 
+ * This file contains data structe and functions that support listing history.
+ * 
+ * - data structure:
+ * History command are stored in a circular list data stucture, limited by the @param limit;
+ * Once the command count reaches the limit, it would override the previous commands.
+ * 
+ * - supportive method included:
+ *  include initializing, adding, searching by number or prefix, displaying, and destorying the history list.
  */
 
 #include <ctype.h>
@@ -13,21 +20,25 @@
 #include "logger.h"
 #include "history.h"
 
-#define MAX_CMD_LEN 10
-
-// circlar list or linked list
-
 struct hist_clist *list = NULL;
 
+/**
+ * @brief @struct hist_clist are used to store the command history 
+ * 
+ */
 struct hist_clist {
-    size_t insertions;
-    size_t capacity;
-    void *cmd_storage;
+    size_t insertions;  /**< number of insertion of history*/
+    size_t capacity;    /**< capacity of the circular list used to store history command */
+    void *cmd_storage;  /**< the storage space for history command*/
 };
 
+/**
+ * @brief the iterator of history list
+ * 
+ */
 struct iterator {
-    unsigned int initialized : 1;
-    size_t idx;
+    unsigned int initialized : 1; /**< initialized or not*/
+    size_t idx; /**< index of iterator*/
 };
 
 void hist_init(unsigned int limit)
