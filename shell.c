@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <pwd.h>
 
 #include "history.h"
 #include "logger.h"
@@ -173,7 +172,6 @@ int main(void)
             break;
         }
 
-        // LOG("Input command: %s\n", command);
         if (strlen(command) == 0) {
             continue;
         }
@@ -210,20 +208,11 @@ int main(void)
         if (elist_size(tokens) == 0)
         {
             perror("no argument\n");
-            // LOGP("fre1\n");
             elist_destroy(tokens);
             continue;
         }
 
-        // size_t idx = 0;
-        // char **current_cmd;
-        // while ((current_cmd = (char **)elist_get(tokens, idx++)) != NULL)
-        // {
-        //     LOG("cmd: %s\n", *current_cmd);
-        // }
-
         char *first_cmd = *(char **)elist_get(tokens, 0);
-        // LOG("first: %s\n", first_cmd);
 
         // check built-ins
         if (strcmp("cd", first_cmd) == 0)
@@ -255,7 +244,6 @@ int main(void)
                 }
                 // as hist num range start from 1
                 // error in atoi would be handled in search num
-                // LOG("cnum: %d\n", hist_num);
                 const char *hist_item = isalpha(*(const char *)(first_cmd + 1)) == 0 ? 
                 hist_search_cnum(hist_num) 
                 : hist_search_prefix(first_cmd + 1);
@@ -277,7 +265,6 @@ int main(void)
         {
             // exit
             elist_destroy(tokens);
-            // LOGP("fre2\n");
             break;
         }
         else if (strcmp("jobs", first_cmd) == 0)
@@ -321,19 +308,14 @@ int main(void)
                 _exit(childProcessRes);
             } else {
                 int status = 0;
-                // LOG("first cmd in parent: %s\n", first_cmd);
                 if (isBackground != 0) {
-                    set_status(0);
                     struct job_item childJob = {child, ""};
                     strncpy(childJob.command, copy, DISPLAY_LIMIT);
                     elist_add(jobs_list, &childJob);
-                    LOG("back: %zu\n", isBackground);
-                    set_status(status);
                 } else {
                     waitpid(child, &status, 0);
                     set_status(status);
                 }
-                // LOG("child status %d\n", status);
             }
         }
 
@@ -341,7 +323,6 @@ int main(void)
         elist_destroy(tokens);
         
     }
-    // LOGP("fre4\n");
     free(copy);
     free(command);
     hist_destroy();
@@ -398,7 +379,6 @@ int handle_history(struct elist *tokens)
 
 int handle_child_execution(struct elist *tokens) {
     char **arguments = (char **)elist_get_list(tokens);
-    // LOG("child process, excueting: %s\n", *arguments);
 
     // add null terminator if size is larger than 1
     if (elist_add_new(tokens) == NULL) {
@@ -412,13 +392,13 @@ int handle_child_execution(struct elist *tokens) {
 
 void handle_jobs(void)
 {   
-    LOG("jobs of len: %zu\n", elist_size(jobs_list));
     size_t idx = 0;
     while (idx < elist_size(jobs_list)) {
         struct job_item *current_job = elist_get(jobs_list, idx);  
         printf("[%zu] %d %s\n", idx, current_job->pid, current_job->command);
         idx++;
-    }
+    }        
+    set_status(0);
 }
 
 void sigint_handler(int signo) {
@@ -495,9 +475,7 @@ int handle_redirect(struct elist *tokens) {
             char * fname = *(char **) elist_get(tokens, idx++);
             redirectRes = handle_redirect_helper(fname, O_RDONLY, open_perms, 1);
         }
-        // LOG("idx %zu\n", idx);
     }
-    // LOGP("traverse done\n");
 
     if (newSize != elist_size(tokens)) {
         elist_set_capacity(tokens, newSize);
@@ -510,10 +488,11 @@ int handle_redirect(struct elist *tokens) {
 void sigchild_handler(int signo) {
     pid_t pid;
     int status;
-    set_status(0);
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         int idx = elist_index_of_partial(jobs_list, &pid, sizeof(pid_t));
+        LOG("\njob done: %d\n", pid);
+        LOG("\nstatus: %d\n", status);
         elist_remove(jobs_list, idx);
-        // LOG("\npid: %d\n", pid);
+        set_status(status);
     }
 }
