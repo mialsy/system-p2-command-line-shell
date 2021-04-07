@@ -260,7 +260,7 @@ ssize_t elist_index_of(struct elist *list, void *item)
 }
 
 
-ssize_t elist_index_of_sz(struct elist *list, void *item, size_t cmp_size)
+ssize_t elist_index_of_partial(struct elist *list, void *item, size_t cmp_size)
 {
     for (size_t idx = 0; idx < list->size; idx++) {
         if (elist_get(list, idx) != NULL && memcmp(item, elist_get(list, idx), cmp_size) == 0) {

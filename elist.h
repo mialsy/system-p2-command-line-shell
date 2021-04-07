@@ -167,6 +167,18 @@ size_t elist_size(struct elist *list);
 void elist_sort(struct elist *list, int (*comparator)(const void *, const void *));
 
 
-ssize_t elist_index_of_sz(struct elist *list, void *item, size_t cmp_size);
+/**
+ * @brief Get partial matching index of a given struct (must be from start)
+ * 
+ * retrive index of partial matching from start of given item
+ * compare first cmp_size memory, and if find the result that match 
+ * return a idx of the corresponding list item
+ * 
+ * @param list The list to search for the element
+ * @param element An element to retrieve the index of
+ * @param cmp_size the memory size to compare
+ * @return ssize_t idx if found, -1 if not found
+ */
+ssize_t elist_index_of_partial(struct elist *list, void *item, size_t cmp_size);
 
 #endif

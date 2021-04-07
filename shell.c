@@ -512,7 +512,7 @@ void sigchild_handler(int signo) {
     int status;
     set_status(0);
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-        int idx = elist_index_of_sz(jobs_list, &pid, sizeof(pid_t));
+        int idx = elist_index_of_partial(jobs_list, &pid, sizeof(pid_t));
         elist_remove(jobs_list, idx);
         // LOG("\npid: %d\n", pid);
     }
