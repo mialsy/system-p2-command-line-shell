@@ -12,7 +12,6 @@
 
 #include <limits.h>
 #include <locale.h>
-#include <malloc.h>
 #include <pwd.h>
 #include <readline/readline.h>
 #include <stdio.h>
