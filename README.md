@@ -51,29 +51,69 @@ The original search index method (only compare ```sizeof(pid)``` from start):
 Note that for simplicity, this method only allows searching the first field of the struct as we only take input of the size to compare. It can be further extended to ```memcpy``` starting from an offset, in this way we can compare fields in the middle of the struct as well.
 
 ### Implemtation - process, built-in and external command
-#### What is a process?
+#### What is a process and why do we need a child process for external command?
+
+A process is basically an instance of the running program. 
+
+In the ```crash``` program, we fork a child process to execute an external command. 
+
+The reason we need different process working on this is that we can do then have differnt handling of signal of the child process, and also allow our ```crash``` to run background jobs. Another reason is that by doing so, we would be able to set up enviroment of the execution of program in the child process, and would be able to redirect IO.
 
 #### What is a signal? 
 
-#### Built-in "crash" functions
+Signal is a way to pass information between proces, and allows process to interact with each other. A signal can be send to a proccesss, and handled by a signal handler. In the ```crash``` command line interface, ```SIGINT``` and ```SIGCHID``` are the two process got handled.
 
-#### How to execute an external command?
+Handling ```SIGINT``` allows ```crash``` to quit a running child process without quiting the interface. 
+
+And ```SIGCHLD``` is handled because we want to have jobs running in the background. As ```SIGCHLD``` handler send signal to parent when child process exits, we can keep track of process that is running in the backgdound.
+
+#### Built-in commands
+
+To implemet built-in commands, the input string would be tokenzied and compared with the built-in commands, and once we find a match, the built-in command would be executed. 
+
+Unlike the external command, the built-in command will not need a fork of child process, however the status of running the built-in command would also reflects on the ui. 
 
 ## Program options
 
-- Running ```crash```:
+- Running ```crash```: no flag needs to be passed in. 
 - Running built-ins in ```crash```:
-    - ```cd``` that changes CWD;
-    - ```#<comment>``` that is ignored by crash;
-    - ```history``` to browse past commands;
-    - ```!!```, ```!<history_num>```, ```!<history_prefix>``` to execute previous command
-    - ``````
+    - ```cd```: used to changes CWD;
+    - ```#<comment>```: this is ignored by crash;
+    - ```history```: used to browse past commands;
+    - ```!!```, ```!<history_num>```, ```!<history_prefix>```: used to execute previous command
+    - ```jobs```: used to browse all running background jobs
+    - ```<command> &```: used to execute command in the background
 
 ## Included files
 
 Here is a list of files that is included:
 
-- **Makefile**: Included to compile and run the programs
+- **Makefile**: Included to compile and run the programs.
+- **shell.c** The driver for ```crash``` program. Includes main function and supportive functions and structs:
+    - ```main()``` function that handles the program logic;
+    - ```struct job_item``` that describe a background job;
+    - supportive funtions to:
+        - tokenize the input string;
+        - handle built-in functions;
+        - SIGINT and SIGCHLD handlers;
+        - print usage and say goodbye.
+- **history.c**: This includes struct and functions that are used to create a history list, which is basically a wrapper for clist. 
+    - ```struct hist_clist``` that stores the history commands;
+    - supprotive functions including:
+        - creating and destory the hist_clist;
+        - printing the history;
+        - adding in the hist_list;
+        - searching hist_list by index, or by prefix;
+        - getting hist_list last added index;
+        - validating if an index is valid in hist_list；
+        - private method that supporting iteration in hist_clist.
+- **ui.c**: This includes functions that support an text based command line ui. It includes:
+    - initializing and destroying ui;
+    - set status in prompt to display previous execution status;
+    - key down and key up to roll back or move forward in history commands;
+    - supprotive function to construct the prompt:
+        - get current working directory, and truncated in shortcut version as needed;
+        - get username, hostname, and home diretory. 
 - **elist.c**: This include a elastic list data structure ```elist``` and functions that supports the ```elist``` operations.       
     - ```struct elist``` which stores the element and metadata of the elist.
     - elist opreation functions including:
@@ -86,17 +126,27 @@ Here is a list of files that is included:
     - helper method ```idx_is_valid(struct elist *, size_t)``` to support checking if a given index is valid.
 - **elist.h**: header files for elist.
 - **logger.h**: Included for log output. 
-
-Header filess are also included for the c files.
+- Header filess are also included for the c files.
 
 For compiling the program, runs:
 ```console
 [miasly@dirtmouth P2-mialsy]$ make
 ```
 
-For runing the crahs, runs:
+For running the ```crash``` in interative mode, runs:
 ```console
+[miasly@dirtmouth P2-mialsy]$ ./crash
+```
 
+For running the ```crash``` in a scripting mode, either use a pipe  or input redirect.
+```console
+[miasly@dirtmouth P2-mialsy]$ cat <somefile> |./crash
+```
+
+Or: 
+
+```console
+[miasly@dirtmouth P2-mialsy]$ ./crash < <somefile>
 ```
 
 ## Program output
