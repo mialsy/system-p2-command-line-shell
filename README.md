@@ -30,10 +30,10 @@ To support the built-in history browsing and retriving, an history list based on
 The clist is essencially a list that gets override when a limit has been reached. It has a size limit (also is the capacity for the list), when the clist reaches the limit, the newly added element will override the old ones.
 
 Here is a domenstration of how clist works:
-<img src="https://github.com/usf-cs521-sp21/P2-mialsy/blob/main/res/clist_demo.gif" alt="demo of the clist adding operation" width="900">
+<img src="https://github.com/usf-cs521-sp21/P2-mialsy/blob/main/res/clist_demo.gif" alt="demo of the clist adding operation" width="700">
 
 #### Elist and partial matching search in elist
-For elist implementaion, please refer to [P1 readme file]().
+For elist implementaion, please refer to [P1 readme file](https://github.com/usf-cs521-sp21/P1-mialsy#project-1-elastic-array--disk-analyzer).
 
 A new feature has been added in this version of elist, partial matching of a elist element. This is implemented as we may need to have an indexing of the elist, for our case in this project, we need to search a job element in the jobs elist based on a job's process id (pid) rather than the entire job element (which has a pid and a command string).
 
