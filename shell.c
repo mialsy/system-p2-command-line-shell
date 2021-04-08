@@ -488,7 +488,10 @@ void sigchild_handler(int signo) {
     int status;
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         int idx = elist_index_of_partial(jobs_list, &pid, sizeof(pid_t));
-        LOG("job done: %d\n", pid);
+        if (isatty(STDIN_FILENO)) {
+            printf("\njob done: %d\n", pid);
+            puts(prompt_line());
+        }
         elist_remove(jobs_list, idx);
         set_status(status);
     }
