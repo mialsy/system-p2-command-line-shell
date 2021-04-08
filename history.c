@@ -68,6 +68,9 @@ void hist_add(void *cmd)
     size_t idx = list->insertions % list->capacity;
     char **ptr = (char **)((char *)list->cmd_storage + idx * (sizeof(char *)));
     if (list->insertions >= list->capacity) {
+        // override the previous storage
+        // since we are storing malloc char array, 
+        // need to free before override
         free(*ptr);
     }
     memcpy(ptr, cmd, sizeof(char *));

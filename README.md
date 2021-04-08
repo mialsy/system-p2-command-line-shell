@@ -6,14 +6,49 @@
 
 ## About the project
 
-### What is crash? 
+Back in the dark age of computer without GUI, shell is the only easy way for human to interct with people. To get a better understanding of how things work in the acient days, we built a ```crash``` program that provide such function. 
+
+### What is ```crash```? 
+
+```crash``` is our own version of the command line interface shell. It basically allows user to interact with the computers in the following ways:
+
+- Run built-in functions:
+    - Including change the CWD, browsing past commands, comment, listing background jobs, and exiting the ```crash``` program.
+    - For detail about running the ```crash```, please check [Program Options]().
+- Run external executable functions:
+    - This allows user to run external executable functions that are avaiable.
+    - Background job are also supported in ```crash```, please review [Program Options]() for how to run background job.
+
+The workflow of how ```crash``` works is as follow: 
 
 ### Data Structure - clist and elist
 #### What is a clist and why are we using it?
-To support the built-in history browsing and retriving, an history list based on circular array structure is included. 
+
+To support the built-in history browsing and retriving, an history list based on circular list (clist) structure is included. 
+
+The clist is essencially a list that gets override when a limit has been reached. It has a size limit (also is the capacity for the list), when the clist reaches the limit, the newly added element will override the old ones.
+
+Here is a domenstration of how clist works:
+
 
 #### Elist and partial matching search in elist
-For elist implementaion, please refer to P1 readme file.
+For elist implementaion, please refer to [P1 readme file]().
+
+A new feature has been added in this version of elist, partial matching of a elist element. This is implemented as we may need to have an indexing of the elist, for our case in this project, we need to search a job element in the jobs elist based on a job's process id (pid) rather than the entire job element (which has a pid and a command string).
+
+To perform the partial matching, the pid was designed to be placed in the very begining of the job struct, thus if we only compare the size of pid in one elist element, we can know whether the pid is matched. 
+
+The original search index method:
+|stuct job_item|pid space| command space|
+|---|---|---|
+|comapred|yes|yes|
+
+The original search index method (only compare ```sizeof(pid)``` from start):
+|stuct job_item|pid space| command space|
+|---|---|---|
+|comapred|yes|**no**|
+
+Note that for simplicity, this method only allows searching the first field of the struct as we only take input of the size to compare. It can be further extended to ```memcpy``` starting from an offset, in this way we can compare fields in the middle of the struct as well.
 
 ### Implemtation - process, built-in and external command
 #### What is a process?
@@ -25,6 +60,14 @@ For elist implementaion, please refer to P1 readme file.
 #### How to execute an external command?
 
 ## Program options
+
+- Running ```crash```:
+- Running built-ins in ```crash```:
+    - ```cd``` that changes CWD;
+    - ```#<comment>``` that is ignored by crash;
+    - ```history``` to browse past commands;
+    - ```!!```, ```!<history_num>```, ```!<history_prefix>``` to execute previous command
+    - ``````
 
 ## Included files
 
@@ -119,9 +162,17 @@ elist.c  elist.o  history.h  libelist.so  logger.h     README.md  shell.o  ui.c 
 [0] 1859026 sleep 30 &
 >>-[😌]-[8]-[miasly@dirtmouth:~/projects/P2-mialsy]-> jobs
 [0] 1859026 sleep 30 &
->>-[😌]-[9]-[miasly@dirtmouth:~/projects/P2-mialsy]-> shell.c:493:sigchild_handler(): job done: 1859026
-shell.c:494:sigchild_handler(): status: 0
+>>-[😌]-[9]-[miasly@dirtmouth:~/projects/P2-mialsy]-> 
 exit
+ ================================ 
+( Goodbye, have a wonderful day! )
+ ================================ 
+  o
+    o
+       /\__)o < 
+      |       \  
+      | O . O | 
+       \_____/ 
 [miasly@dirtmouth P2-mialsy]$ 
 ```
 
