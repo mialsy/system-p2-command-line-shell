@@ -14,12 +14,13 @@ Back in the dark age of computer without GUI, shell is the only easy way for hum
 
 - Run built-in functions:
     - Including change the CWD, browsing past commands, comment, listing background jobs, and exiting the ```crash``` program.
-    - For detail about running the ```crash```, please check [Program Options]().
+    - For detail about running the ```crash```, please check [**Program Options**](https://github.com/usf-cs521-sp21/P2-mialsy#program-options).
 - Run external executable functions:
     - This allows user to run external executable functions that are avaiable.
-    - Background job are also supported in ```crash```, please review [Program Options]() for how to run background job.
+    - Background job are also supported in ```crash```, please review [**Program Options**](https://github.com/usf-cs521-sp21/P2-mialsy#program-options) for how to run background job.
 
 The workflow of how ```crash``` works is as follow: 
+<img src="https://github.com/usf-cs521-sp21/P2-mialsy/blob/main/res/p2_main_function.jpg" alt="crash main function workflow" width="900">
 
 ### Data Structure - clist and elist
 #### What is a clist and why are we using it?
@@ -29,7 +30,7 @@ To support the built-in history browsing and retriving, an history list based on
 The clist is essencially a list that gets override when a limit has been reached. It has a size limit (also is the capacity for the list), when the clist reaches the limit, the newly added element will override the old ones.
 
 Here is a domenstration of how clist works:
-
+<img src="https://github.com/usf-cs521-sp21/P2-mialsy/blob/main/res/clist_demo.gif" alt="demo of the clist adding operation" width="900">
 
 #### Elist and partial matching search in elist
 For elist implementaion, please refer to [P1 readme file]().
@@ -41,12 +42,12 @@ To perform the partial matching, the pid was designed to be placed in the very b
 The original search index method:
 |stuct job_item|pid space| command space|
 |---|---|---|
-|comapred|yes|yes|
+|compared|yes|yes|
 
 The original search index method (only compare ```sizeof(pid)``` from start):
 |stuct job_item|pid space| command space|
 |---|---|---|
-|comapred|yes|**no**|
+|compared|yes|**no**|
 
 Note that for simplicity, this method only allows searching the first field of the struct as we only take input of the size to compare. It can be further extended to ```memcpy``` starting from an offset, in this way we can compare fields in the middle of the struct as well.
 
