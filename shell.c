@@ -288,6 +288,8 @@ int main(void)
             else if (child == 0)
             {
                 // handle excution
+
+                //make sure child die when parent die
                 prctl(PR_SET_PDEATHSIG, SIGTERM);
 
                 // process redirect
